@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  nature: MyString
+  cd: 1.5
+  releases_count: 1
+  frequency: 1.5
+  damage_ratio: 1.5
+  levelUpSetting: 
+
+two:
+  name: MyString
+  nature: MyString
+  cd: 1.5
+  releases_count: 1
+  frequency: 1.5
+  damage_ratio: 1.5
+  levelUpSetting: 

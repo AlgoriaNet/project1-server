@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  user_id: 1
+  hero_id: 1
+  deployed_sidekick1_id: 1
+  deployed_sidekick2_id: 1
+  deployed_sidekick3ra_id: 1
+  deployed_sidekick4_id: 1
+
+two:
+  name: MyString
+  user_id: 1
+  hero_id: 1
+  deployed_sidekick1_id: 1
+  deployed_sidekick2_id: 1
+  deployed_sidekick3_id: 1
+  deployed_sidekick4_id: 1
