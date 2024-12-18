@@ -6,18 +6,7 @@ class BaseSidekick < ApplicationRecord
   validates :skill_id, presence: true
 
   def as_ws_json
-    json = as_json
-    json.delete("created_at")
-    json.delete("updated_at")
-    json.delete("variety_damage")
-    json.delete("character")
-    json.delete("skill_id")
-    json.delete("description")
-
-    {}.tap do |h|
-      json.each { |k, v| h[snake_to_camel(k)] = v }
-      h["Skill"] = base_skill.as_ws_json
-    end
+    super(except: %w[variety_damage character skill_id description])
   end
 end
 

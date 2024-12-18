@@ -13,7 +13,7 @@ class BattleChannel < ApplicationCable::Channel
   end
 
   def mock_result()
-    sidekicks = BaseSidekick.where("id in (1,2,4,3)")
+    sidekicks = BaseSidekick.where("id in (1)")
     levelUpEffects = sidekicks.map{|s| s.base_skill.level_up_effects }.flatten
     {
       main_stage: {},
