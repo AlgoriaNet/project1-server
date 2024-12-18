@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_16_032637) do
+ActiveRecord::Schema[7.1].define(version: 2024_12_18_032647) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description", null: false
     t.string "name", limit: 30, null: false
@@ -112,6 +112,40 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_16_032637) do
     t.index ["player_id"], name: "equipments_players_id_fk"
   end
 
+  create_table "gemstone_entries", charset: "utf8mb3", force: :cascade do |t|
+    t.string "description"
+    t.string "name"
+    t.float "level_1_value"
+    t.float "level_2_value"
+    t.float "level_3_value"
+    t.float "level_4_value"
+    t.float "level_5_value"
+    t.float "level_6_value"
+    t.float "level_7_value"
+    t.float "level_8_value"
+    t.float "level_9_value"
+    t.float "level_10_value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "gemstones", charset: "utf8mb3", force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.string "level"
+    t.string "quality"
+    t.bigint "entry_id"
+    t.string "access_channels"
+    t.bigint "player_id"
+    t.bigint "equip_id"
+    t.boolean "is_locked", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entry_id"], name: "fk_rails_613db41abd"
+    t.index ["equip_id"], name: "fk_rails_abebbc4073"
+    t.index ["player_id"], name: "fk_rails_4ea6464855"
+  end
+
   create_table "heros", charset: "utf8mb3", force: :cascade do |t|
     t.string "name"
     t.integer "player_id"
@@ -178,4 +212,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_16_032637) do
   add_foreign_key "equipments", "heros", column: "equip_with_hero_id", name: "equipments_heros_id_fk"
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
   add_foreign_key "equipments", "sidekicks", column: "equip_with_sidekick_id", name: "equipments_sidekicks_id_fk"
+  add_foreign_key "gemstones", "equipments", column: "equip_id"
+  add_foreign_key "gemstones", "gemstone_entries", column: "entry_id"
+  add_foreign_key "gemstones", "players"
 end

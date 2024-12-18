@@ -133,3 +133,13 @@ L
 app/models/player_profile.rb,3/5/35292b720ebf74528a69c82046d592fa9c540f96
 N
 app/channels/player_channel.rb,f/5/f55b0d2696d58890ce1c1905089748de35103d15
+F
+app/models/gemstone.rb,f/7/f7ffa816e7e108abbe3f323f1e9cd284b87d5892
+L
+app/models/gemstone_entry.rb,6/4/64ebb40b0f6902339875a3cb67850509969e1a2b
+d
+4db/migrate/20241218032659_create_gemstone_entries.rb,2/f/2f042934297876f1e02cc6d6b3cdca5ad5b454d3
+]
+-db/migrate/20241218032647_create_gemstones.rb,4/0/40b32fd672aeaef98b12dc8b13f272e495638720
+d
+4db/migrate/20241218032619_create_gemstone_entries.rb,e/5/e5db7ca0fcb63a25e4b93e43a9d18048394bb9a1
