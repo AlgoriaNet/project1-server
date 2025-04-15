@@ -26,5 +26,8 @@ module SurvivorServer
     config.action_cable.disable_request_forgery_protection = true
     config.action_cable.log_tags = [ :action_cable, :uuid ]
     config.action_cable.logger = ActiveSupport::Logger.new(STDOUT)
+
+    config.autoload_paths << "#{Rails.root}/app/models/service"
+    config.autoload_paths << "#{Rails.root}/app/lib/utils"
   end
 end

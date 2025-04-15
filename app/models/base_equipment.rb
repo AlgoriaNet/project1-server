@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class BaseEquipment < ApplicationRecord
-  enum quality: { common: :Common, pare: :Rare, fine: :Fine, epic: :Epic, legendary: :Legendary, mythic: :Mythic }
-  enum part: { hat: :Hat, armor: :Armor, wristbands: :Wristbands, gloves: :Gloves, pants: :Pants, shoes: :Shoes }
+  PARTS = [:Shoulder, :Chest, :Helm, :Gloves, :Pants, :Boots]
+  def as_ws_json(options = nil)
+    super({except: [:id, :created_at, :updated_at]})
+  end
 end

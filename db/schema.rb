@@ -10,14 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_12_18_032647) do
+ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
-    t.string "description", null: false
+    t.string "description"
     t.string "name", limit: 30, null: false
-    t.string "quality", limit: 20, null: false, comment: "品质"
+    t.integer "quality", null: false, comment: "品质"
     t.string "part", null: false, comment: "部位"
     t.integer "base_atk", null: false, comment: "基础攻击力"
     t.integer "growth_atk", null: false, comment: "成长攻击力"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "base_items", charset: "utf8mb3", force: :cascade do |t|
+    t.string "name"
+    t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -98,9 +105,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_18_032647) do
 
   create_table "equipments", charset: "utf8mb3", force: :cascade do |t|
     t.bigint "base_equipment_id", null: false
-    t.integer "intensify_level", default: 0, null: false, comment: "强化等级"
+    t.integer "intensify_level", default: 0, comment: "强化等级"
     t.text "nearby_attributes"
-    t.text "额外词条"
+    t.text "additional_attributes"
     t.bigint "player_id", null: false
     t.bigint "equip_with_sidekick_id"
     t.bigint "equip_with_hero_id"
@@ -132,17 +139,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_18_032647) do
   create_table "gemstones", charset: "utf8mb3", force: :cascade do |t|
     t.string "name"
     t.string "description"
-    t.string "level"
-    t.string "quality"
-    t.bigint "entry_id"
+    t.integer "level"
+    t.integer "quality"
     t.string "access_channels"
     t.bigint "player_id"
-    t.bigint "equip_id"
     t.boolean "is_locked", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["entry_id"], name: "fk_rails_613db41abd"
-    t.index ["equip_id"], name: "fk_rails_abebbc4073"
+    t.integer "entry_id"
+    t.integer "inlay_with_sidekick_id"
+    t.integer "inlay_with_hero_id"
+    t.string "part", null: false
     t.index ["player_id"], name: "fk_rails_4ea6464855"
   end
 
@@ -183,6 +190,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_18_032647) do
     t.integer "stamina", default: 100, null: false, comment: "体力"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "unpack_counts"
   end
 
   create_table "sidekicks", charset: "utf8mb3", force: :cascade do |t|
@@ -212,7 +220,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_12_18_032647) do
   add_foreign_key "equipments", "heros", column: "equip_with_hero_id", name: "equipments_heros_id_fk"
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
   add_foreign_key "equipments", "sidekicks", column: "equip_with_sidekick_id", name: "equipments_sidekicks_id_fk"
-  add_foreign_key "gemstones", "equipments", column: "equip_id"
-  add_foreign_key "gemstones", "gemstone_entries", column: "entry_id"
   add_foreign_key "gemstones", "players"
 end

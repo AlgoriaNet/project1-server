@@ -137,9 +137,45 @@ F
 app/models/gemstone.rb,f/7/f7ffa816e7e108abbe3f323f1e9cd284b87d5892
 L
 app/models/gemstone_entry.rb,6/4/64ebb40b0f6902339875a3cb67850509969e1a2b
-d
-4db/migrate/20241218032659_create_gemstone_entries.rb,2/f/2f042934297876f1e02cc6d6b3cdca5ad5b454d3
 ]
 -db/migrate/20241218032647_create_gemstones.rb,4/0/40b32fd672aeaef98b12dc8b13f272e495638720
 d
 4db/migrate/20241218032619_create_gemstone_entries.rb,e/5/e5db7ca0fcb63a25e4b93e43a9d18048394bb9a1
+P
+ lib/generate_gemstone_entries.rb,6/d/6d2695877e68f1c1a4927f4271771c5138591842
+P
+ app/channels/gemstone_channel.rb,c/b/cb85c38856a0e07386c794804a39bca6e204eb2f
+P
+ app/channels/unboxing_channel.rb,d/0/d03ec3ea10b52e82c1d30251314ddc1b8a46333e
+N
+app/models/service/unboxing.rb,b/e/bea7150e80fc6bf660342f4d069c1e325db962ed
+S
+#lib/config/generic_gemstone_box.csv,f/1/f1cc5e7a7737267d96906a949bbc3e44865b342f
+S
+#lib/config/unusual_gemstone_box.csv,0/d/0d78f5ffa7f8620a976a64c4993640c2d408925a
+A
+lib/csc_config.rb,4/f/4f148aa57a15a8e5338a87f79f3903f8563a1c90
+b
+2db/migrate/20241219060320_add_columns_to_player.rb,4/a/4a90d6b87171b67cca1510e64d881c4ff7782dbc
+M
+lib/config/base_equipment.csv,b/1/b1b5d07722b8ca22dc48adacbb6ad63917fbaf66
+N
+lib/generate_base_equipment.rb,e/9/e98e57b2655ee845a3ef380f20595d377d4d19ba
+G
+app/models/base_item.rb,5/b/5bb6390f87ba2900cdfb93d836cc612744bfd3ba
+^
+.db/migrate/20250225024304_create_base_items.rb,e/d/edce7294ff6a2fe8116c43e07929f9d36f253d7c
+Q
+!app/channels/equipment_channel.rb,c/4/c4992a6aec7bf3d74e033fa29c1e5546f70ba9e2
+M
+lib/config/washing_config.csv,1/9/193ca2ba4adfc2b1e6f825b8df439ba9d40ce8bc
+]
+-db/migrate/20250312112343_change_gemstones.rb,0/4/044aa579ce9522e648969cab2fdc28059aa0c2ff
+=
+bin/push_code,5/8/586e5a37de99a6f15258280e4a44c90290a14b64
+8
+Rakefile,4/4/44b7fa1ba50397e71d88bd69389f1ec917165cfb
+J
+app/models/default_crud.rb,f/5/f53570c9a6bca58c99cb2dd15fc7cf22c08b7f67
+@
+bin/push_code.sh,f/c/fc4cba6c2f29c48ad05272c1f3cc10ef9aacdc84

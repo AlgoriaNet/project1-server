@@ -7,14 +7,17 @@ class Gemstone < ApplicationRecord
 
   belongs_to :player, class_name: 'Player', foreign_key: :player_id
   belongs_to :gemstone_entry, class_name: 'GemstoneEntry', foreign_key: :entry_id
-  belongs_to :equipment, class_name: 'Equipment', foreign_key: :equip_id
+  belongs_to :sidekick, optional: true, class_name: 'Sidekick', foreign_key: :inlay_with_sidekick_id
+  belongs_to :hero, optional: true, class_name: 'Hero', foreign_key: :inlay_with_hero_id
 
-  def initialize(level, player_id)
-    self.level = MIN_LEVEL if level < MIN_LEVEL
-    self.level = MAX_LEVEL if level > MAX_LEVEL
-    self.player_id = player_id
-    random_entry
-    self.is_locked = false
+  def self.generate(level, player_id)
+    new = Gemstone.new
+    new.level = level
+    new.player_id = player_id
+    new.random_entry
+    new.part = BaseEquipment::PARTS.sample
+    new.is_locked = false
+    new
   end
 
   def random_entry
@@ -32,27 +35,38 @@ class Gemstone < ApplicationRecord
     self
   end
 
-  def inlay(equip_id)
-    # 如果已经镶嵌在了装备上，不能再镶嵌
-    return false if self.equip_id.present?
-    equipment = self.player.equipments.find(equip_id)
+  def inlay_with(living)
+    # 如果该装备已经装备了，就不能再装备
+    return false if is_inlaid?
+    # 如果该装备的部位已经装备了其他装备, 先卸下
+    puts "living: #{living.id}, equipments_count: #{living.equipments.count}"
+    inlaid = living.gemstones.reload.to_a.select do |gemstone|
+      gemstone.part == self.part && gemstone.entry_id == self.entry_id
+    end
+    inlaid.each(&:outlay)
 
-    # 如果装备不存在，不能镶嵌
-    return false if equipment.blank?
-    is_inlaid = equipment.gemstones.find { |g| g.gemstone_entry == self.gemstone_entry }.present?
-
-    # 如果装备上已经有同类型的宝石，不能再镶嵌
-    return false if is_inlaid
-    self.equip_id = equip_id
+    if living.class == Hero
+      self.inlay_with_hero_id = living.id
+    elsif living.class == Sidekick
+      self.inlay_with_sidekick_id = living.id
+    else
+      return false
+    end
     self.save!
+    true
   end
 
   def outlay
-    return false if self.equip_id.blank?
-    self.equip_id = nil
+    self.inlay_with_hero_id = nil
+    self.inlay_with_sidekick_id = nil
     self.save!
   end
 
+  def is_inlaid?
+    self.inlay_with_hero_id.present? || self.inlay_with_sidekick_id.present?
+  end
+
+  # 一键升级
   def self.auto_upgrade(player_id)
     (MIN_LEVEL...MAX_LEVEL).each do |level|
       unlocked_gems = where(player_id: player_id, level: level, is_locked: false)
@@ -64,6 +78,7 @@ class Gemstone < ApplicationRecord
     end
   end
 
+  # 升级
   def self.upgrade(player_id, gemstone_ids)
     validate_upgrade = validate_upgrade(player_id, gemstone_ids)
     if validate_upgrade
@@ -75,6 +90,7 @@ class Gemstone < ApplicationRecord
     end
   end
 
+  # 验证升级
   def self.validate_upgrade(player_id, gemstone_ids)
     return false if gemstone_ids.size != UPGRADE_QUANTITY_COUNT
     gemstones = Gemstone.where(player_id: player_id, id: gemstone_ids)
@@ -93,5 +109,21 @@ class Gemstone < ApplicationRecord
       map[entry_name][:value] += gemstone.gemstone_entry["level_#{gemstone.level}_value"]
     end
     map.values
+  end
+
+  def as_ws_json(options = nil)
+    {
+      id: id,
+      name: gemstone_entry.name,
+      description: gemstone_entry.description,
+      part: part,
+      level: level,
+      quality: quality,
+      is_locked: is_locked,
+      inlay_with_hero_id: inlay_with_hero_id,
+      inlay_with_sidekick_id: inlay_with_sidekick_id,
+      entry_id: entry_id,
+      entry_value: gemstone_entry["level_#{level}_value"]
+    }
   end
 end
