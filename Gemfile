@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby "3.2.3"
+ruby ">=3.0.0"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.5"
@@ -72,4 +72,5 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+  gem 'activesupport', '>= 5.2.0'
 end

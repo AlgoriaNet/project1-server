@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-class CscConfig
+class CsvConfig
   TYPE_MAPPINGS = {
     'int' => ->(value) { value.to_i },
     'float' => ->(value) { value.to_f },
     'string' => ->(value) { value },
     'bool' => ->(value) { value.downcase == 'true' },
+    'json' => ->(value) { JSON.parse(value.gsub(';', ',')) rescue value },
   }
 
   class << self
@@ -49,6 +50,14 @@ class CscConfig
 
     def load_washing_config
       load_by_path 'washing_config.csv'
+    end
+
+    def load_base_items
+      load_by_path 'base_items.csv'
+    end
+
+    def load_products
+      load_by_path 'product.csv'
     end
   end
 end

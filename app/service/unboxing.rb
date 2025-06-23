@@ -2,10 +2,11 @@
 
 class Unboxing
 
-  def self.generate_gemstone_box_ten(player_id)
+  def self.generate_gemstone_by_times(player_id, count)
+    raise ArgumentError, "Invalid count" if count != 10 && count != 1
     ApplicationRecord.transaction do
       gemstones = []
-      10.times do
+      count.times do
         gemstones << generate_gemstone_box(player_id)
       end
       return gemstones
@@ -14,7 +15,7 @@ class Unboxing
 
   def self.generate_gemstone_box(player_id)
     ApplicationRecord.transaction do
-      probability = CscConfig.load_generic_gemstone_box
+      probability = CsvConfig.load_generic_gemstone_box
       player = Player.find(player_id)
       player.unpack_counts ||= {}
       player.unpack_counts["generic_gemstone_box"] ||= 0
@@ -41,10 +42,11 @@ class Unboxing
     end
   end
 
-  def self.unusual_gemstone_box_ten(player_id)
+  def self.unusual_gemstone_by_times(player_id, count)
+    raise ArgumentError, "Invalid count" if count != 10 && count != 1
     ApplicationRecord.transaction do
       gemstones = []
-      10.times do
+      count.times do
         gemstones << unusual_gemstone_box(player_id)
       end
       return gemstones
@@ -53,7 +55,7 @@ class Unboxing
 
   def self.unusual_gemstone_box(player_id)
     ApplicationRecord.transaction do
-      probability = CscConfig.load_unusual_gemstone_box
+      probability = CsvConfig.load_unusual_gemstone_box
       player = Player.find(player_id)
       player.unpack_counts ||= {}
       player.unpack_counts["unusual_gemstone_box"] ||= 0

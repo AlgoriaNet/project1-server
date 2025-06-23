@@ -1,0 +1,10 @@
+product_id,money,currency,description,reward_items
+string,double,string,string,json
+hero_99,0.99,USD,,"{""diamond"":60}"
+hero_499,4.99,USD,,"{""diamond"":330}"
+hero_999,9.99,USD,,"{""diamond"":680}"
+card_999,9.99,USD,,"{""diamond"":680}"
+hero_1999,19.99,USD,,"{""diamond"":1480}"
+card_2999,29.99,USD,,"{""diamond"":2040}"
+hero_4999,49.99,USD,,"{""diamond"":3780}"
+hero_9999,99.99,USD,,"{""diamond"":7980}"

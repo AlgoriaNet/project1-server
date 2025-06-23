@@ -1,7 +1,7 @@
 class Equipment < ApplicationRecord
   self.table_name = 'equipments'
   MAX_INLAY_GEMSTONE_COUNT = 6
-  WASHING_CONFIG = CscConfig.load_washing_config.reduce({}) { |v, o| v[o[:level]] = o; v }
+  WASHING_CONFIG = CsvConfig.load_washing_config.reduce({}) { |v, o| v[o[:level]] = o; v }
   WASHING_ENTRIES = [:Mechanical,
                      :Light,
                      :Fire,

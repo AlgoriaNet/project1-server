@@ -1,6 +1,6 @@
-require 'roo'
+# require 'roo'
 
-class ReloadBaseData
+class Utils::ReloadBaseData
 
   # def self.reload_base_sidekick
   #   excel = reload_excel_from_xlsx

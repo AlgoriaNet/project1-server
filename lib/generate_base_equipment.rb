@@ -1,7 +1,7 @@
 class GenerateBaseEquipment
   def self.generate
     BaseEquipment.destroy_all
-    CscConfig.load_base_equipment.each do |base_equipment|
+    CsvConfig.load_base_equipment.each do |base_equipment|
       BaseEquipment.create(base_equipment)
     end
   end

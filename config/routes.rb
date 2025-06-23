@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   post "/api/login" => "sessions#login", as: :rails_login
+  post "/api/guest_login" => "users#guest_login", as: :guest_login
 
   mount ActionCable.server => '/cable'
 end

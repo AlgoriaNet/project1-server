@@ -1,0 +1,5 @@
+id, name, description, quality, stackable, item_type
+int,string,string,int,bool,string
+1,heroKey,A key that can open any lock,5,true,key
+2,rareKey,A key that can open any lock,4,true,key
+3,epicKey,A key that can open any lock,3,true,key

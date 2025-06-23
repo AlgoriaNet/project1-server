@@ -4,7 +4,8 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 6 }, if: :password_digest_changed?
 
 
-  def self.create_guest_user
+  def self.create_guest_user(device_id)
+
     create!(
       email: "guest_#{SecureRandom.uuid}@example.com",
       password: SecureRandom.hex(8),

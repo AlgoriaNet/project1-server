@@ -1,0 +1,152 @@
+#!/bin/bash
+
+APP_PATH="/data/server/survivor_server"
+ENV="production"
+
+#RAILS_ENV="production" rails server &
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 [server|resque|resque-s|record-worker|all|help] [start|stop|restart]"
+    exit 1
+fi
+
+case "$1" in
+    "server" | "s")
+        case "$2" in
+            "start" | "")
+                echo "Starting server..."
+                RAILS_ENV="$ENV" rails server &
+                ;;
+            "stop")
+                echo "Stopping server..."
+                pids=$(lsof -t -i :3000)
+                if [ -n "$pids" ]; then
+                    for pid in $pids; do
+                        kill -TERM $pid
+                    done
+                    echo "Server stopped."
+                else
+                    echo "No server running on port 3000."
+                fi
+                ;;
+            "restart")
+                $0 server stop
+                $0 server start
+                ;;
+            *)
+                echo "Invalid server command: $2"
+                ;;
+        esac
+        ;;
+    "resque")
+        case "$2" in
+            "start" | "")
+                echo "Starting Resque..."
+                PIDFILE="$APP_PATH/resque-queue.pid" BACKGROUND=yes QUEUE=queue-* rake COUNT=1 RAILS_ENV="$ENV" resque:workers >> "$APP_PATH/log/resque.log"
+                PIDFILE="$APP_PATH/resque-sql-timed-task.pid" BACKGROUND=yes QUEUE=sql-timed-task rake COUNT=4 RAILS_ENV="$ENV" resque:workers >> "$APP_PATH/log/resque.log"
+                PIDFILE="$APP_PATH/resque-history-timed-task1.pid" BACKGROUND=yes QUEUE=sql-history-timed-task-1 rake COUNT=1 RAILS_ENV="$ENV" resque:workers >> "$APP_PATH/log/resque.log"
+                PIDFILE="$APP_PATH/resque-history-timed-task2.pid" BACKGROUND=yes QUEUE=sql-history-timed-task-2 rake COUNT=1 RAILS_ENV="$ENV" resque:workers >> "$APP_PATH/log/resque.log"
+                PIDFILE="$APP_PATH/resque-history-timed-task3.pid" BACKGROUND=yes QUEUE=sql-history-timed-task-3 rake COUNT=1 RAILS_ENV="$ENV" resque:workers >> "$APP_PATH/log/resque.log"
+                PIDFILE="$APP_PATH/resque-history-timed-task4.pid" BACKGROUND=yes QUEUE=sql-history-timed-task-4 rake COUNT=1 RAILS_ENV="$ENV" resque:workers >> "$APP_PATH/log/resque.log"
+                ;;
+            "stop")
+                echo "Stopping Resque..."
+                pids=$(ps -ef | grep resque-2 | gawk -F' ' '{print $2}')
+                if [ -n "$pids" ]; then
+                    for pid in $pids; do
+                        kill -TERM $pid
+                    done
+                    echo "Resque stopped."
+                else
+                    echo "No Resque workers running."
+                fi
+                ;;
+            "restart")
+                $0 resque stop
+                $0 resque start
+                ;;
+            *)
+                echo "Invalid resque command: $2"
+                ;;
+        esac
+        ;;
+    "resque-s" | "resque_schedule")
+        case "$2" in
+            "start" | "")
+                echo "Starting Resque Schedule..."
+                PIDFILE="$APP_PATH/resque-schedule.pid" BACKGROUND=yes RAILS_ENV="$ENV" rake resque:scheduler
+                ;;
+            "stop")
+                echo "Stopping Resque Schedule..."
+                pids=$(ps -ef | grep  resque-scheduler | gawk -F' ' '{print $2}')
+                if [ -n "$pids" ]; then
+                    for pid in $pids; do
+                        kill -TERM $pid
+                    done
+                    echo "Resque Schedule stopped."
+                else
+                    echo "No Resque Schedule running."
+                fi
+                ;;
+            "restart")
+                $0 resque-s stop
+                $0 resque-s start
+                ;;
+            *)
+                echo "Invalid $1 command: $2"
+                ;;
+        esac
+        ;;
+    "record-worker")
+        case "$2" in
+            "start" | "")
+                echo "Starting Record workers..."
+                for i in {1..10}
+                do
+                  nohup rake kafka:consumer[user_event,$i,2] RAILS_ENV="$ENV" >> "$APP_PATH/log/record.log" 2>&1 &
+                done
+                ;;
+            "stop")
+                echo "Stopping Record workers..."
+
+                pids=$(ps -ef | grep  'Kafka' | gawk -F' ' '{print $2}')
+                if [ -n "$pids" ]; then
+                    for pid in $pids; do
+                        kill -9 $pid
+                    done
+                    rm "$APP_PATH/record-user-event.pid"
+                    echo "Record workers stopped."
+                else
+                    echo "No Record workers running."
+                fi
+                ;;
+            "restart")
+                $0 record-worker stop
+                $0 record-worker start
+                ;;
+            *)
+                echo "Invalid $1 command: $2"
+                ;;
+        esac
+        ;;
+    "all")
+        $0 server "$2"
+        $0 resque "$2"
+        $0 resque-s "$2"
+        $0 record-worker "$2"
+        ;;
+    "help" | "-h")
+        echo "Usage: $0 [server|resque|resque-s|all|help] [start|stop|restart]"
+        echo "Commands:"
+        echo "  server [start|stop|restart]        - Manage the server process on port 3000"
+        echo "  resque [start|stop|restart]        - Manage Resque workers"
+        echo "  resque-s [start|stop|restart]      - Manage Resque Schedule workers"
+        echo "  record-worker [start|stop|restart] - Manage Record workers"
+        echo "  all start                          - Start all services"
+        echo "  all stop                           - Start all services"
+        echo "  all restart                        - Start all services"
+        echo "  help | -h                          - Display this help message"
+        ;;
+    *)
+        echo "Invalid option: $1. Use 'server', 'resque', 'resque-s', 'record-worker', 'all', or 'help'."
+        ;;
+esac

@@ -3,6 +3,11 @@
 class Living < ActiveRecord::Base
   self.abstract_class = true
   include Redis::Objects
+
+  def self.redis_prefix(class_name)
+    "#{class_name}:#{self.name}"
+  end
+
   value :MaxHp
   value :Hp
   value :Atk

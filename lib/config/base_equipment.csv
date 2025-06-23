@@ -1,4 +1,4 @@
-name,description,quality,part,base_atk,growth_atk
+id,name,description,quality,part,base_atk,growth_atk
 string,string,int,string,int,int
 Shoulder_01,,1,Shoulder,10,2
 Pants_01,,1,Pants,10,2

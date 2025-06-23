@@ -1,17 +1,12 @@
 class UsersController < ApplicationController
-  def register
-    user = User.new(user_params)
-
-    if user.save
-      render json: { message: 'Registration successful', user: { id: user.id, email: user.email } }, status: :created
-    else
-      render json: { error: user.errors.full_messages }, status: :unprocessable_entity
+  skip_before_action :verify_authenticity_token
+  def guest_login
+    device_id = params[:device_id]
+    player = Player.where(device_id: device_id).first
+    if player.blank?
+      player = Player.create(device_id: device_id, name: "游客_#{device_id[0..5]}")
+      player.save!
     end
-  end
-
-  private
-
-  def user_params
-    params.require(:user).permit(:email, :password)
+    render json: {id: player.id}, status: :ok
   end
 end

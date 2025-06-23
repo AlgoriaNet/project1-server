@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_18_063446) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -27,6 +27,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "stackable", default: true, null: false
+    t.string "item_type"
+    t.integer "quality"
+    t.index ["name"], name: "index_base_items_on_name"
+    t.index ["name"], name: "index_base_items_on_unique_name", unique: true
   end
 
   create_table "base_sidekicks", charset: "utf8mb3", force: :cascade do |t|
@@ -143,13 +148,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
     t.integer "quality"
     t.string "access_channels"
     t.bigint "player_id"
-    t.boolean "is_locked", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.integer "entry_id"
     t.integer "inlay_with_sidekick_id"
     t.integer "inlay_with_hero_id"
     t.string "part", null: false
+    t.boolean "is_locked", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["player_id"], name: "fk_rails_4ea6464855"
   end
 
@@ -181,6 +186,26 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "orders", charset: "utf8mb3", force: :cascade do |t|
+    t.bigint "player_id", null: false
+    t.string "order_id", null: false
+    t.string "product_id", null: false
+    t.string "platform_order_id"
+    t.string "platform", null: false
+    t.boolean "is_sandbox", default: false
+    t.decimal "money", precision: 10, scale: 2, null: false
+    t.string "currency", default: "CNY", null: false
+    t.datetime "pay_time"
+    t.datetime "deliver_time"
+    t.string "status", default: "pending", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_orders_on_order_id", unique: true
+    t.index ["platform_order_id"], name: "index_orders_on_platform_order_id", unique: true
+    t.index ["player_id", "platform", "status"], name: "index_orders_on_player_id_and_platform_and_status"
+    t.index ["player_id"], name: "index_orders_on_player_id"
+  end
+
   create_table "players", charset: "utf8mb3", force: :cascade do |t|
     t.string "name", comment: "用户昵称"
     t.integer "level", default: 1, null: false, comment: "等级"
@@ -191,6 +216,24 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "unpack_counts"
+    t.string "device_id"
+    t.string "monthly_card_expiry"
+    t.string "weekly_card_expiry"
+    t.json "items_json"
+    t.index "(cast(json_extract(`items_json`,_utf8mb3'$.weapons') as char(255) charset utf8mb3))", name: "index_players_on_weapons_items"
+    t.index "(json_type(`items_json`))", name: "index_players_on_items_type"
+    t.index ["device_id"], name: "index_players_on_device_id", unique: true
+  end
+
+  create_table "purchase_products", charset: "utf8mb3", force: :cascade do |t|
+    t.string "product_id", null: false
+    t.decimal "money", precision: 10, scale: 2, null: false
+    t.string "currency", default: "USD"
+    t.text "description"
+    t.json "reward_items"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_purchase_products_on_product_id", unique: true
   end
 
   create_table "sidekicks", charset: "utf8mb3", force: :cascade do |t|
@@ -221,4 +264,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_12_112343) do
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
   add_foreign_key "equipments", "sidekicks", column: "equip_with_sidekick_id", name: "equipments_sidekicks_id_fk"
   add_foreign_key "gemstones", "players"
+  add_foreign_key "orders", "players"
 end
