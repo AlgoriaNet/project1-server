@@ -7,10 +7,6 @@ class Player < ApplicationRecord
   has_many :gemstones
   has_many :battle_formations
 
-  attribute :items_json, :json, default: -> { {} }
-
-  serialize :unpack_counts, JSON
-
   before_create :init_by_before_create
   after_create :init_by_after_create
 
@@ -18,7 +14,6 @@ class Player < ApplicationRecord
 
   value :weekly_periodic_rewards_received_date
   value :monthly_periodic_rewards_received_date
-
 
   def get_gemstone_entries_summary
     Gemstone.get_gemstone_entries_summary(self.equipments.map(&:gemstones).flatten)
@@ -91,7 +86,7 @@ class Player < ApplicationRecord
     raise ArgumentError, "Item not found." unless BaseItem.exists?(id_or_name)
     item_name = BaseItem.get_name(id_or_name)
     self.items_json ||= {}
-    self.items_json[id_or_name] ||= 0
+    self.items_json[item_name] ||= 0
     raise ArgumentError, "Not enough items." if self.items_json[item_name] < count
   end
 
@@ -102,6 +97,7 @@ class Player < ApplicationRecord
     # You can add any initialization logic here.
     # For example, you might want to set default values for attributes.
     self.items_json = {}
+    self.draw_times = {}
   end
 
 

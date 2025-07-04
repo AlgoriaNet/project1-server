@@ -9,5 +9,3 @@ class BaseSidekick < ApplicationRecord
     super(except: %w[variety_damage character skill_id description])
   end
 end
-
-

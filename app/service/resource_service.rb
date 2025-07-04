@@ -4,21 +4,12 @@ class ResourceService
   attr_reader :player_id, :resource
   def initialize(player_id, resource_params = {})
     @player_id = player_id
-    @player = Player.find(player_id)
+    @player = Player.find(player_id).reload
     @resource = PlayerResource.new(resource_params)
   end
 
+
   def add_resource!
-    add_resource
-    @player.save!
-  end
-
-  def cost_resource!
-    cost_resource
-    @player.save!
-  end
-
-  def add_resource
     validate_add!
     @player.diamond ||= 0
     @player.diamond += diamond
@@ -31,10 +22,12 @@ class ResourceService
     @resource.items.each do |item_id, count|
       @player.add_item(item_id, count)
     end
+    puts @player.items_json
+    @player.save!
     @resource
   end
 
-  def cost_resource
+  def cost_resource!
     validate_cost!
     @player.diamond ||= 0
     @player.diamond -= @resource.diamond
@@ -47,10 +40,10 @@ class ResourceService
     @resource.items.each do |item_id, count|
       @player.remove_item(item_id, count)
     end
+    @player.save!
+    puts @player.items_json
     @resource
   end
-
-  private
 
   def validate_add!
     raise ArgumentError "add diamond cannot be negative" if @resource.diamond < 0

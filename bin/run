@@ -14,7 +14,7 @@ case "$1" in
         case "$2" in
             "start" | "")
                 echo "Starting server..."
-                RAILS_ENV="$ENV" rails server &
+                RAILS_ENV="$ENV" rails server >> "$APP_PATH/log/server.log" 2>&1 &
                 ;;
             "stop")
                 echo "Stopping server..."
@@ -73,7 +73,7 @@ case "$1" in
         case "$2" in
             "start" | "")
                 echo "Starting Resque Schedule..."
-                PIDFILE="$APP_PATH/resque-schedule.pid" BACKGROUND=yes RAILS_ENV="$ENV" rake resque:scheduler
+                PIDFILE="$APP_PATH/resque-schedule.pid" BACKGROUND=yes RAILS_ENV="$ENV" rake resque:scheduler >> "$APP_PATH/log/resque-schedule.log" 2>&1 &
                 ;;
             "stop")
                 echo "Stopping Resque Schedule..."

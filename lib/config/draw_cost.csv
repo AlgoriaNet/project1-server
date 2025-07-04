@@ -1,19 +1,17 @@
 card_pool_type,consume_item,count,cost
 string,string,int,json
 rare gem,ad,1,{}
-rare gem,key,1,{"item":{"rareKey": 1}}
-rare gem,key,10,{"item":{"rareKey": 10}}
-rare gem,diamond,1,{"diamond": 1}
-rare gem,diamond,10,{"diamond": 10}
+rare gem,key,1,{'items':{'rareKey': 1}}
+rare gem,key,10,{'items':{'rareKey': 10}}
+rare gem,diamond,1,{'diamond': 180}
+rare gem,diamond,10,{'diamond': 1800}
 epic gem,ad,1,{}
-epic gem,key,1,{"item":{"epicKey": 1}}
-epic gem,key,10,{"item":{"epicKey": 10}}
-epic gem,diamond,1,{"diamond": 1}
-epic gem,diamond,10,{"diamond": 10}
+epic gem,key,1,{'items':{'epicKey': 1}}
+epic gem,key,10,{'items':{'epicKey': 10}}
+epic gem,diamond,1,{'diamond': 200}
+epic gem,diamond,10,{'diamond': 2000}
 hero,ad,1,{}
-hero,key,1,{"item":{"heroKey": 1}}
-hero,key,10,{"item":{"heroKey": 10}}
-hero,diamond,1,{"diamond": 1}
-hero,diamond,10,{"diamond": 10}
-
-
+hero,key,1,{'items':{'heroKey': 1}}
+hero,key,10,{'items':{'heroKey': 10}}
+hero,diamond,1,{'diamond': 300}
+hero,diamond,10,{'diamond': 3000}

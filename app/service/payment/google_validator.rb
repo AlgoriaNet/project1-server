@@ -1,6 +1,6 @@
 # app/services/payment/google_validator.rb
-require 'google/apis/androidpublisher_v3'
-require 'googleauth'
+# require 'google/apis/androidpublisher_v3'
+# require 'googleauth'
 
 module Payment
   class GoogleValidator

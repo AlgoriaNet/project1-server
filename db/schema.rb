@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_18_063446) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_25_061130) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -46,6 +46,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_18_063446) do
     t.json "variety_damage", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cn_name", comment: "中文名"
+    t.string "drawing_icon", comment: "立绘名"
+    t.string "fragment_name", comment: "碎片名"
+    t.string "card_name", comment: "卡牌名"
+    t.string "portrait_icon", comment: "头像名"
+    t.string "skill_icon", comment: "技能ICON"
+    t.string "skill_book_icon", comment: "技能书icon"
+    t.index ["cn_name"], name: "index_base_sidekicks_on_cn_name"
+    t.index ["fragment_name"], name: "index_base_sidekicks_on_fragment_name"
   end
 
   create_table "base_skill_level_up_effects", charset: "utf8mb3", force: :cascade do |t|
@@ -215,11 +224,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_18_063446) do
     t.integer "stamina", default: 100, null: false, comment: "体力"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.text "unpack_counts"
     t.string "device_id"
     t.string "monthly_card_expiry"
     t.string "weekly_card_expiry"
     t.json "items_json"
+    t.json "draw_times", comment: "抽奖次数记录,包括保底记录等，JSON格式"
     t.index "(cast(json_extract(`items_json`,_utf8mb3'$.weapons') as char(255) charset utf8mb3))", name: "index_players_on_weapons_items"
     t.index "(json_type(`items_json`))", name: "index_players_on_items_type"
     t.index ["device_id"], name: "index_players_on_device_id", unique: true

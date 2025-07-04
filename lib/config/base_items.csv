@@ -1,5 +1,45 @@
-id, name, description, quality, stackable, item_type
+id,name,description,quality,stackable,item_type
 int,string,string,int,bool,string
-1,heroKey,A key that can open any lock,5,true,key
-2,rareKey,A key that can open any lock,4,true,key
-3,epicKey,A key that can open any lock,3,true,key
+1,heroKey,Akeythatcanopenanylock,5,TRUE,key
+2,rareKey,Akeythatcanopenanylock,4,TRUE,key
+3,epicKey,Akeythatcanopenanylock,3,TRUE,key
+10001,01_Zorath,,4,TRUE,fragment
+10002,02_Gideon,,4,TRUE,fragment
+10003,03_Sylas,,4,TRUE,fragment
+10004,04_Aurelia,,4,TRUE,fragment
+10005,05_Lyanna,,4,TRUE,fragment
+10006,06_Zhara,,4,TRUE,fragment
+10007,07_Elenya,,4,TRUE,fragment
+10008,08_Rowan,,4,TRUE,fragment
+10009,09_Liraen,,4,TRUE,fragment
+10010,10_Cedric,,4,TRUE,fragment
+10011,11_Selena,,4,TRUE,fragment
+10012,12_Morgath,,4,TRUE,fragment
+10013,13_Zyphira,,4,TRUE,fragment
+10014,14_Kaelith,,4,TRUE,fragment
+10015,15_Velan,,4,TRUE,fragment
+10016,16_Ragnar,,4,TRUE,fragment
+10017,17_Lucien,,4,TRUE,fragment
+10018,18_Ugra,,4,TRUE,fragment
+10019,19_Eleanor,,4,TRUE,fragment
+10020,20_Nyx,,4,TRUE,fragment
+30001,SKb_01_Zorath,,4,TRUE,skill_book
+30002,SKb_02_Gideon,,4,TRUE,skill_book
+30003,SKb_03_Sylas,,4,TRUE,skill_book
+30004,SKb_04_Aurelia,,4,TRUE,skill_book
+30005,SKb_05_Lyanna,,4,TRUE,skill_book
+30006,SKb_06_Zhara,,4,TRUE,skill_book
+30007,SKb_07_Elenya,,4,TRUE,skill_book
+30008,SKb_08_Rowan,,4,TRUE,skill_book
+30009,SKb_09_Liraen,,4,TRUE,skill_book
+30010,SKb_10_Cedric,,4,TRUE,skill_book
+30011,SKb_11_Selena,,4,TRUE,skill_book
+30012,SKb_12_Morgath,,4,TRUE,skill_book
+30013,SKb_13_Zyphira,,4,TRUE,skill_book
+30014,SKb_14_Kaelith,,4,TRUE,skill_book
+30015,SKb_15_Velan,,4,TRUE,skill_book
+30016,SKb_16_Ragnar,,4,TRUE,skill_book
+30017,SKb_17_Lucien,,4,TRUE,skill_book
+30018,SKb_18_Ugra,,4,TRUE,skill_book
+30019,SKb_19_Eleanor,,4,TRUE,skill_book
+30020,SKb_20_Nyx,,4,TRUE,skill_book

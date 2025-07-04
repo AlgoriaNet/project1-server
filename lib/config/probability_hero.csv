@@ -1,0 +1,8 @@
+type,count, probability
+string, int, float
+skb,1,20
+fragment,1,75
+fragment,2,3
+fragment,3,1.47
+fragment,5,0.5
+fragment,10,0.03
