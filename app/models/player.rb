@@ -19,6 +19,16 @@ class Player < ApplicationRecord
     Gemstone.get_gemstone_entries_summary(self.equipments.map(&:gemstones).flatten)
   end
 
+  # Add stamina to player
+  def add_stamina!(amount)
+    ApplicationRecord.transaction do
+      self.stamina ||= 0
+      self.stamina += amount
+      save!
+    end
+    self
+  end
+
   def add_item(id_or_name, count = 1, reason = nil)
     validate_change_item_params(id_or_name, count)
     item_name = BaseItem.get_name(id_or_name)
@@ -90,6 +100,14 @@ class Player < ApplicationRecord
     raise ArgumentError, "Not enough items." if self.items_json[item_name] < count
   end
 
+  # Override as_ws_json to ensure summoned_allies is always included
+  def as_ws_json(options = nil)
+    # Ensure summoned_allies is always an array, never nil
+    attrs = super(options)
+    attrs['summoned_allies'] = summoned_allies || []
+    attrs
+  end
+
   private
 
   def init_by_before_create
@@ -98,6 +116,7 @@ class Player < ApplicationRecord
     # For example, you might want to set default values for attributes.
     self.items_json = {}
     self.draw_times = {}
+    self.summoned_allies = []
   end
 
 

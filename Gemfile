@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby ">=3.0.0"
+ruby "3.0.6"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.5"
@@ -9,6 +9,7 @@ gem "rails", "~> 7.1.5"
 gem "sprockets-rails"
 
 # Use sqlite3 as the database for Active Record
+# gem 'sqlite3', '~> 1.4'
 gem 'mysql2', '~> 0.5.4'
 
 # Use the Puma web server [https://github.com/puma/puma]
@@ -28,7 +29,7 @@ gem "jbuilder"
 
 # Use Redis adapter to run Action Cable in production
 gem "redis", ">= 4.0.1"
-gem 'redis-objects', '>= 2.0.0.beta'
+gem "redis-objects"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"

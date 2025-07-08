@@ -10,6 +10,8 @@ class DrawChannel < ApplicationCable::Channel
     begin
       player = Player.find(params[:user_id])
       rewards = DrawService.new(params[:user_id], _json).draw
+      # Reload player to get updated heroKey and items_json after DrawService
+      player.reload
       if _json["card_pool_type"] == "hero"
         render_response "draw", json, {
           items: rewards,
