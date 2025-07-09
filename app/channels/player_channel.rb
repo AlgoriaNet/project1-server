@@ -187,4 +187,32 @@ class PlayerChannel < ApplicationCable::Channel
     end
   end
 
+  def update_sidekick_deployment(json)
+    _json = JSON.parse(json['json'])
+    deployed_base_ids = _json['deployed_ids']
+    begin
+      if !deployed_base_ids.is_a?(Array)
+        render_error "update_sidekick_deployment", json, "deployed_ids must be an array", 400
+        return
+      end
+      # Convert all to string for comparison (handles '01', 1, etc.)
+      deployed_base_ids = deployed_base_ids.map(&:to_s)
+      # Get all sidekicks for this player
+      player_sidekicks = player.sidekicks
+      ApplicationRecord.transaction do
+        player_sidekicks.each do |sidekick|
+          should_deploy = deployed_base_ids.include?(sidekick.base_id.to_s)
+          Rails.logger.info "Sidekick #{sidekick.id} base_id #{sidekick.base_id} -> #{should_deploy} (deployed_ids: #{deployed_base_ids.inspect})"
+          sidekick.update!(is_deployed: should_deploy)
+        end
+      end
+      render_response "update_sidekick_deployment", json, {
+        success: true,
+        deployed_base_ids: deployed_base_ids
+      }
+    rescue StandardError => e
+      Rails.logger.error "Update sidekick deployment error: #{e.message}\n#{e.backtrace.join("\n")}" 
+      render_error "update_sidekick_deployment", json, "Internal server error", 500
+    end
+  end
 end
