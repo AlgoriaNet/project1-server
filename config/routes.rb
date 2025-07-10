@@ -10,6 +10,10 @@ Rails.application.routes.draw do
   # root "posts#index"
   post "/api/login" => "sessions#login", as: :rails_login
   post "/api/guest_login" => "users#guest_login", as: :guest_login
+  
+  namespace :api do
+    get "/allies/:ally_id/upgrade_levels", to: "allies#upgrade_levels"
+  end
 
   mount ActionCable.server => '/cable'
 end

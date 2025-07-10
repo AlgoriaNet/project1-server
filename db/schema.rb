@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_05_121636) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_09_160640) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -68,6 +68,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_05_121636) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "gold_cost"
     t.index ["skill_id"], name: "fk_rails_c33a2be3e9"
   end
 
