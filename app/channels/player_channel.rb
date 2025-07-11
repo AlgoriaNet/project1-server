@@ -151,7 +151,7 @@ class PlayerChannel < ApplicationCable::Channel
           base_id: base_sidekick.id,
           player_id: player.id,
           skill_level: 1,
-          star: 1,
+          star: 0,
           is_deployed: false
         )
 
@@ -222,6 +222,9 @@ class PlayerChannel < ApplicationCable::Channel
     Rails.logger.info "[WS get_level_up_cost] Incoming ally_id: #{ally_id}"
     
     begin
+      # Reload player data to ensure fresh inventory data
+      player.reload
+      
       # Find sidekick template
       base_sidekick = BaseSidekick.find_by(fragment_name: ally_id)
       Rails.logger.info "[WS get_level_up_cost] BaseSidekick lookup result: #{base_sidekick.inspect}"
@@ -240,40 +243,37 @@ class PlayerChannel < ApplicationCable::Channel
       
       current_level = player_sidekick.skill_level
       
-      # Get all upgrade levels for this specific sidekick (match REST API logic)
-      upgrade_levels = BaseSkillLevelUpEffect.where(skill_id: base_sidekick.skill_id)
-        .select { |upgrade| 
-          effects = JSON.parse(upgrade.effects || '{}')
-          effects['sidekick_fragment_name'] == ally_id
-        }
-        .sort_by(&:level)
-        .map do |upgrade|
-          {
-            level: "L#{upgrade.level.to_s.rjust(2, '0')}",
-            description: upgrade.description,
-            cost: upgrade.weight,
-            is_unlocked: current_level >= upgrade.level
-          }
-        end
+      # Get cost data from CSV (same as level_upgrade)
+      costs = CsvConfig.load_level_up_costs
+      max_level = costs.map { |cost| cost[:level] }.max
       
-      # Get max level from upgrade_levels (if present)
-      max_level = upgrade_levels.map { |u| u[:level].gsub('L', '').to_i }.max || 0
-      
-      # Get cost for next level
-      next_level = current_level + 1
-      next_upgrade = upgrade_levels.find { |u| u[:level] == "L#{next_level.to_s.rjust(2, '0')}" }
-      
-      if next_upgrade.nil?
+      # Check if already at max level
+      if current_level >= max_level
         render_response "get_level_up_cost", json, {
           ally_id: ally_id,
           current_level: current_level,
           max_level: max_level,
           can_level_up: false,
-          message: "Already at maximum level or no upgrade data",
-          upgrade_levels: upgrade_levels
+          message: "Already at maximum level"
         }
         return
       end
+      
+      # Get cost for current level (to upgrade FROM this level)
+      current_level_cost = costs.find { |cost| cost[:level] == current_level }
+      
+      if current_level_cost.nil?
+        render_response "get_level_up_cost", json, {
+          ally_id: ally_id,
+          current_level: current_level,
+          max_level: max_level,
+          can_level_up: false,
+          message: "No cost data for current level"
+        }
+        return
+      end
+      
+      next_level = current_level + 1
       
       # Get skillbook name for this sidekick
       skillbook_name = "SKb_#{ally_id}"
@@ -289,16 +289,15 @@ class PlayerChannel < ApplicationCable::Channel
         max_level: max_level,
         can_level_up: true,
         cost: {
-          skillbook_cost: next_upgrade[:cost],
-          gold_cost: next_upgrade[:cost] # If you have gold_cost, use it here
+          skillbook_cost: current_level_cost[:skillbook_cost],
+          gold_cost: current_level_cost[:gold_cost]
         },
         player_resources: {
           gold: player_gold,
           skillbooks: player_skillbooks
         },
-        has_enough_resources: player_gold >= (next_upgrade[:cost] || 0) && 
-                             player_skillbooks >= (next_upgrade[:cost] || 0),
-        upgrade_levels: upgrade_levels
+        has_enough_resources: player_gold >= current_level_cost[:gold_cost] && 
+                             player_skillbooks >= current_level_cost[:skillbook_cost]
       }
     rescue StandardError => e
       Rails.logger.error "Get level up cost error: #{e.message}\n#{e.backtrace.join("\n")}" 
@@ -401,6 +400,300 @@ class PlayerChannel < ApplicationCable::Channel
     rescue StandardError => e
       Rails.logger.error "Level up ally error: #{e.message}\n#{e.backtrace.join("\n")}" 
       render_error "level_up_ally", json, "Internal server error", 500
+    end
+  end
+
+  def level_upgrade(json)
+    _json = JSON.parse(json['json'])
+    ally_name = _json['ally_name']
+    current_level = _json['current_level']
+    
+    begin
+      # Find sidekick template
+      base_sidekick = BaseSidekick.find_by(fragment_name: ally_name)
+      if base_sidekick.nil?
+        render_error "level_upgrade", json, "Ally not found", 400
+        return
+      end
+      
+      # Find player's sidekick instance
+      player_sidekick = player.sidekicks.find_by(base_id: base_sidekick.id)
+      if player_sidekick.nil?
+        render_error "level_upgrade", json, "Player doesn't own this ally", 400
+        return
+      end
+      
+      # Validate current level matches database
+      if player_sidekick.skill_level != current_level
+        render_error "level_upgrade", json, "Current level mismatch: database has #{player_sidekick.skill_level}, request has #{current_level}", 400
+        return
+      end
+      
+      # Get cost data from CSV
+      costs = CsvConfig.load_level_up_costs
+      max_level = costs.map { |cost| cost[:level] }.max
+      
+      # Check if already at max level
+      if current_level >= max_level
+        render_error "level_upgrade", json, "Already at maximum level", 400
+        return
+      end
+      
+      # Get cost for current level (to upgrade FROM this level)
+      current_level_cost = costs.find { |cost| cost[:level] == current_level }
+      
+      if current_level_cost.nil?
+        render_error "level_upgrade", json, "No cost data for current level", 500
+        return
+      end
+      
+      next_level = current_level + 1
+      
+      # Get skillbook name for this sidekick
+      skillbook_name = "SKb_#{ally_name}"
+      
+      # Check player's resources
+      player_gold = player.gold_coin || 0
+      player_skillbooks = player.items_json&.dig(skillbook_name) || 0
+      
+      required_gold = current_level_cost[:gold_cost]
+      required_skillbooks = current_level_cost[:skillbook_cost]
+      
+      # Validate resources
+      if player_gold < required_gold
+        render_error "level_upgrade", json, "Insufficient gold: required #{required_gold}, have #{player_gold}", 400
+        return
+      end
+      
+      if player_skillbooks < required_skillbooks
+        render_error "level_upgrade", json, "Insufficient skillbooks: required #{required_skillbooks}, have #{player_skillbooks}", 400
+        return
+      end
+      
+      # Perform level up in transaction
+      ApplicationRecord.transaction do
+        # Deduct gold
+        player.gold_coin -= required_gold
+        
+        # Deduct skillbooks
+        player.items_json = player.items_json || {}
+        player.items_json[skillbook_name] = player_skillbooks - required_skillbooks
+        
+        # Level up sidekick
+        player_sidekick.skill_level += 1
+        
+        # Save all changes
+        player.save!
+        player_sidekick.save!
+      end
+      
+      # Return updated values as requested by frontend
+      render_response "level_upgrade", json, {
+        data: {
+          ally_id: ally_name,
+          new_level: player_sidekick.skill_level,
+          gold: player.gold_coin,
+          skillbooks: player.items_json[skillbook_name]
+        }
+      }
+      
+    rescue StandardError => e
+      Rails.logger.error "Level upgrade error: #{e.message}\n#{e.backtrace.join("\n")}" 
+      render_error "level_upgrade", json, "Internal server error", 500
+    end
+  end
+
+  def star_upgrade(json)
+    _json = JSON.parse(json['json'])
+    ally_name = _json['ally_name']
+    current_star = _json['current_star']
+    
+    begin
+      # Reload player data to ensure fresh inventory data
+      player.reload
+      
+      # Find sidekick template
+      base_sidekick = BaseSidekick.find_by(fragment_name: ally_name)
+      if base_sidekick.nil?
+        render_error "star_upgrade", json, "Ally not found", 400
+        return
+      end
+      
+      # Find player's sidekick instance
+      player_sidekick = player.sidekicks.find_by(base_id: base_sidekick.id)
+      if player_sidekick.nil?
+        render_error "star_upgrade", json, "Player doesn't own this ally", 400
+        return
+      end
+      
+      # Validate current star matches database
+      if player_sidekick.star != current_star
+        render_error "star_upgrade", json, "Current star mismatch: database has #{player_sidekick.star}, request has #{current_star}", 400
+        return
+      end
+      
+      # Get cost data from CSV
+      costs = CsvConfig.load_star_upgrade_costs
+      max_star = costs.map { |cost| cost[:star] }.max
+      
+      # Check if already at max star
+      if current_star >= max_star
+        render_error "star_upgrade", json, "Already at maximum star level", 400
+        return
+      end
+      
+      # Get cost for current star (to upgrade FROM this star)
+      current_star_cost = costs.find { |cost| cost[:star] == current_star }
+      
+      if current_star_cost.nil?
+        render_error "star_upgrade", json, "No cost data for current star level", 500
+        return
+      end
+      
+      next_star = current_star + 1
+      
+      # Get shard name for this sidekick (same as fragment name)
+      shard_name = ally_name
+      
+      # Check player's resources
+      player_gold = player.gold_coin || 0
+      player_shards = player.items_json&.dig(shard_name) || 0
+      
+      required_gold = current_star_cost[:gold_cost]
+      required_shards = current_star_cost[:shard_cost]
+      
+      # Validate resources
+      if player_gold < required_gold
+        render_error "star_upgrade", json, "Insufficient gold: required #{required_gold}, have #{player_gold}", 400
+        return
+      end
+      
+      if player_shards < required_shards
+        render_error "star_upgrade", json, "Insufficient shards: required #{required_shards}, have #{player_shards}", 400
+        return
+      end
+      
+      # Perform star upgrade in transaction
+      ApplicationRecord.transaction do
+        # Deduct gold
+        player.gold_coin -= required_gold
+        
+        # Deduct shards
+        player.items_json = player.items_json || {}
+        player.items_json[shard_name] = player_shards - required_shards
+        
+        # Upgrade star
+        player_sidekick.star += 1
+        
+        # Save all changes
+        player.save!
+        player_sidekick.save!
+      end
+      
+      # Return updated values
+      render_response "star_upgrade", json, {
+        data: {
+          ally_id: ally_name,
+          new_star: player_sidekick.star,
+          gold: player.gold_coin,
+          shards: player.items_json[shard_name]
+        }
+      }
+      
+    rescue StandardError => e
+      Rails.logger.error "Star upgrade error: #{e.message}\n#{e.backtrace.join("\n")}" 
+      render_error "star_upgrade", json, "Internal server error", 500
+    end
+  end
+
+  def get_star_upgrade_cost(json)
+    _json = JSON.parse(json['json'])
+    ally_id = _json['ally_id']
+    
+    begin
+      # Reload player data to ensure fresh inventory data
+      player.reload
+      
+      # Find sidekick template
+      base_sidekick = BaseSidekick.find_by(fragment_name: ally_id)
+      if base_sidekick.nil?
+        render_error "get_star_upgrade_cost", json, "Ally not found", 400
+        return
+      end
+      
+      # Find player's sidekick instance
+      player_sidekick = player.sidekicks.find_by(base_id: base_sidekick.id)
+      if player_sidekick.nil?
+        render_error "get_star_upgrade_cost", json, "Player doesn't own this ally", 400
+        return
+      end
+      
+      current_star = player_sidekick.star
+      
+      # Get cost data from CSV
+      costs = CsvConfig.load_star_upgrade_costs
+      max_star = costs.map { |cost| cost[:star] }.max
+      
+      # Check if already at max star
+      if current_star >= max_star
+        render_response "get_star_upgrade_cost", json, {
+          ally_id: ally_id,
+          current_star: current_star,
+          max_star: max_star,
+          can_star_up: false,
+          message: "Already at maximum star level"
+        }
+        return
+      end
+      
+      # Get cost for current star (to upgrade FROM this star)
+      current_star_cost = costs.find { |cost| cost[:star] == current_star }
+      
+      if current_star_cost.nil?
+        render_response "get_star_upgrade_cost", json, {
+          ally_id: ally_id,
+          current_star: current_star,
+          max_star: max_star,
+          can_star_up: false,
+          message: "No cost data for current star level"
+        }
+        return
+      end
+      
+      next_star = current_star + 1
+      
+      # Get shard name for this sidekick (same as fragment name)
+      shard_name = ally_id
+      Rails.logger.info "[WS get_star_upgrade_cost] Player: #{player.name} (ID: #{player.id})"
+      Rails.logger.info "[WS get_star_upgrade_cost] Looking for shard_name: #{shard_name}"
+      
+      # Check player's resources
+      player_gold = player.gold_coin || 0
+      player_shards = player.items_json&.dig(shard_name) || 0
+      Rails.logger.info "[WS get_star_upgrade_cost] Found player_shards: #{player_shards}"
+      Rails.logger.info "[WS get_star_upgrade_cost] All shard keys: #{player.items_json&.keys&.select { |k| k.match(/^[0-9]+_/) && !k.start_with?('SKb_') }}"
+      
+      render_response "get_star_upgrade_cost", json, {
+        ally_id: ally_id,
+        current_star: current_star,
+        next_star: next_star,
+        max_star: max_star,
+        can_star_up: true,
+        cost: {
+          shard_cost: current_star_cost[:shard_cost],
+          gold_cost: current_star_cost[:gold_cost]
+        },
+        player_resources: {
+          gold: player_gold,
+          shards: player_shards
+        },
+        has_enough_resources: player_gold >= current_star_cost[:gold_cost] && 
+                             player_shards >= current_star_cost[:shard_cost]
+      }
+      
+    rescue StandardError => e
+      Rails.logger.error "Get star upgrade cost error: #{e.message}\n#{e.backtrace.join("\n")}" 
+      render_error "get_star_upgrade_cost", json, "Internal server error", 500
     end
   end
 

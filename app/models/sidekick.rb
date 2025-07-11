@@ -9,6 +9,12 @@ class Sidekick < ApplicationRecord
   validates :player_id, presence: true
   validates :skill_level, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :star, presence: true, numericality: { greater_than_or_equal_to: 0 }
+
+  def as_ws_json(options = nil)
+    super(options).merge({
+      'base_sidekick' => base_sidekick.as_ws_json
+    })
+  end
 end
 
 

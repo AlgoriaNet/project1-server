@@ -15,6 +15,7 @@ class PlayerProfile
       Player: player_data.merge({
                                  equipments: Equipment.includes(:base_equipment).where(player_id: @player_id).reload.map(&:as_ws_json),
                                  gemstones: Gemstone.includes(:gemstone_entry).where(player_id: @player_id).reload.map(&:as_ws_json),
+                                 sidekicks: Sidekick.includes(:base_sidekick).where(player_id: @player_id).reload.map(&:as_ws_json),
                                }),
     }
   end

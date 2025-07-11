@@ -76,6 +76,13 @@ The sidekicks system is a core game mechanic that allows players to collect, upg
 4. Increments `skill_level` and applies stat bonuses
 5. Unlocks new abilities based on `base_skill_level_up_effects`
 
+### Star Upgrade Process
+1. Player selects sidekick for star upgrade
+2. System checks current `star` level and required resources
+3. Deducts shards and gold from player inventory
+4. Increments `star` level (increases rarity/power)
+5. Higher star levels provide better base stats
+
 ### Battle Deployment
 1. Player configures `BattleFormation` with selected sidekicks
 2. System validates formation (max 4 sidekicks)
@@ -112,10 +119,55 @@ The sidekicks system is a core game mechanic that allows players to collect, upg
 
 ## Technical Notes
 
+### Data Consistency Rules
+**IMPORTANT**: API identifier formats must be consistent across frontend and backend:
+
+- **sidekick.base_id**: numeric (4) - internal database reference only
+- **sidekick.base_sidekick.fragment_name**: string ("04_Aurelia") - **USE THIS FOR ALL API CALLS**
+- **sidekick.base_sidekick.name**: string ("Aurelia") - display name for UI
+- **sidekick.id**: numeric (24) - unique instance identifier
+
+**API Integration Rules**:
+1. **Frontend → Backend**: Always use `fragment_name` format for API parameters
+2. **Skillbook naming**: Follow "SKb_" + fragment_name pattern (e.g., "SKb_04_Aurelia")
+3. **Level costs**: Universal from `level_up_costs.csv` (applies to all sidekicks)
+4. **Star costs**: Universal from `star_upgrade_costs.csv` (applies to all sidekicks)
+5. **Multiple instances**: Players can have duplicate sidekicks of same base type
+
+**Cost Logic**:
+- **Level/Star costs show current level/star cost** (not next level cost)
+- Player at star 0 → Shows 10 shards + 1000 gold (star 0 cost)
+- Player at level 1 → Shows 20 skillbooks + 1000 gold (level 1 cost)
+- CSV format: Each row shows cost to upgrade FROM that level/star
+
+**Level/Star Ranges**:
+- **Star Range**: 0→1→2→3→4→5 (max star 5)
+- **Level Range**: 1→2→...→19→20 (max level 20)
+- **New sidekicks**: Start at star 0, level 1
+- **Cost CSV**: Covers all upgrade paths (star 0-4, level 1-19)
+
+**WebSocket API Formats**:
+- `get_level_up_cost`: expects `ally_id` = fragment_name
+- `level_upgrade`: expects `ally_name` = fragment_name  
+- `get_upgrade_levels`: expects `ally_id` = fragment_name
+- `get_star_upgrade_cost`: expects `ally_id` = fragment_name
+- `star_upgrade`: expects `ally_name` = fragment_name
+
 ### Performance Considerations
 - CSV loading destroys all existing data (`BaseSidekick.destroy_all`)
 - Large JSON fields for variety_damage and effects may impact queries
 - Consider indexing frequently queried fields (cn_name, fragment_name)
+
+### WebSocket Caching Issue (FIXED)
+**Problem**: WebSocket connections cache player objects (`@player ||= Player.find(...)`) causing stale data:
+- Player draws shards → Database updated
+- WebSocket APIs return cached (old) shard quantities
+- Only fixed after reconnection
+
+**Solution**: Added `player.reload` to WebSocket methods that need fresh inventory data:
+- `get_level_up_cost` - Ensures fresh skillbook quantities
+- `get_star_upgrade_cost` - Ensures fresh shard quantities  
+- `star_upgrade` - Ensures fresh shard quantities before upgrade
 
 ### Code Quality
 - Models follow Rails conventions with proper associations
