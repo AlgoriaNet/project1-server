@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   
   namespace :api do
     get "/allies/:ally_id/upgrade_levels", to: "allies#upgrade_levels"
+    get "/level_up_costs", to: "allies#level_up_costs"
   end
 
   mount ActionCable.server => '/cable'

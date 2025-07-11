@@ -71,5 +71,9 @@ class CsvConfig
     def load_base_sidekicks
       load_by_path 'base_sidekicks.csv'
     end
+
+    def load_level_up_costs
+      load_by_path 'level_up_costs.csv'
+    end
   end
 end
