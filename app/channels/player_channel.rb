@@ -597,7 +597,8 @@ class PlayerChannel < ApplicationCable::Channel
           new_star: player_sidekick.star,
           gold: player.gold_coin,
           shards: player.items_json[shard_name]
-        }
+        },
+        updated_sidekick: player_sidekick.as_ws_json
       }
       
     rescue StandardError => e
