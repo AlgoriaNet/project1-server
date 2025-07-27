@@ -18,7 +18,7 @@ class Equipment < ApplicationRecord
   belongs_to :hero, optional: true, class_name: 'Hero', foreign_key: :equip_with_hero_id
   belongs_to :player, class_name: 'Player', foreign_key: :player_id
 
-  has_many :gemstones, class_name: 'Gemstone'
+  has_many :gemstones, foreign_key: :equipment_id, dependent: :nullify
   serialize :nearby_attributes, type: Hash, coder: JSON
 
   def self.init(base_id, player_id)
@@ -29,6 +29,28 @@ class Equipment < ApplicationRecord
 
   def get_gemstone_entries_summary
     Gemstone.get_gemstone_entries_summary(self.gemstones)
+  end
+  
+  # New method for equipment-based gem embedding
+  def get_embedded_gems_summary
+    (1..5).map do |slot|
+      gem = self.gemstones.find_by(slot_number: slot)
+      {
+        slot: slot,
+        gem: gem&.as_ws_json,
+        is_empty: gem.nil?
+      }
+    end
+  end
+  
+  def embed_gem(gemstone, slot_number)
+    gemstone.inlay_with_equipment(self, slot_number)
+  end
+  
+  def remove_gem(slot_number)
+    gem = self.gemstones.find_by(slot_number: slot_number)
+    return { success: false, error: "No gem in slot #{slot_number}" } unless gem
+    gem.outlay_from_equipment
   end
 
   # 装备
@@ -103,7 +125,8 @@ class Equipment < ApplicationRecord
       nearby_attributes: self.nearby_attributes,
       additional_attributes: self.additional_attributes,
       equip_with_hero_id: self.equip_with_hero_id,
-      equip_with_sidekick_id: self.equip_with_sidekick_id
+      equip_with_sidekick_id: self.equip_with_sidekick_id,
+      embedded_gems: get_embedded_gems_summary
     }.merge(self.base_equipment.as_ws_json.symbolize_keys)
   end
 end

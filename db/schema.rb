@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_25_063728) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_27_032312) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -166,6 +166,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_063728) do
     t.boolean "is_locked", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "equipment_id"
+    t.integer "slot_number", default: 1
+    t.boolean "is_in_inventory", default: true
+    t.index ["equipment_id", "slot_number"], name: "index_gemstones_on_equipment_id_and_slot_number", unique: true
     t.index ["player_id"], name: "fk_rails_4ea6464855"
   end
 
@@ -273,6 +277,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_063728) do
   add_foreign_key "equipments", "heros", column: "equip_with_hero_id", name: "equipments_heros_id_fk"
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
   add_foreign_key "equipments", "sidekicks", column: "equip_with_sidekick_id", name: "equipments_sidekicks_id_fk"
+  add_foreign_key "gemstones", "equipments"
   add_foreign_key "gemstones", "players"
   add_foreign_key "orders", "players"
 end

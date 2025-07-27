@@ -31,7 +31,55 @@ class GemstoneChannel < ApplicationCable::Channel
     end
   end
 
+  # New equipment-based inlay API
   def inlay(json)
+    params = JSON.parse(json['json'])
+    gemstone_id = params['gemId']
+    equipment_id = params['equipmentId']
+    slot_number = params['slotNumber'] || 1
+    
+    # Legacy support for sidekickId parameter
+    if params['sidekickId'].present? && equipment_id.blank?
+      return legacy_inlay(json)
+    end
+    
+    gemstone = @player.gemstones.find_by(id: gemstone_id)
+    equipment = @player.equipments.find_by(id: equipment_id)
+    
+    if gemstone.blank?
+      render_error "inlay", json, "Gemstone not found", 404
+      return
+    end
+    
+    if equipment.blank?
+      render_error "inlay", json, "Equipment not found", 404
+      return
+    end
+    
+    if gemstone.is_embedded?
+      render_error "inlay", json, "Gem is already embedded", 400
+      return
+    end
+    
+    result = gemstone.inlay_with_equipment(equipment, slot_number)
+    
+    if result[:success]
+      @player.reload # Ensure fresh data
+      render_response "inlay", json, {
+        success: true,
+        equipment_id: equipment_id,
+        slot_number: slot_number,
+        gem_id: gemstone_id,
+        updated_equipment: equipment.reload.as_ws_json,
+        inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+      }
+    else
+      render_error "inlay", json, result[:error], 400
+    end
+  end
+  
+  # Legacy inlay method for backward compatibility
+  def legacy_inlay(json)
     params = JSON.parse(json['json'])
     gemstone_id = params['gemId']
     sidekick_id = params['sidekickId']
@@ -59,17 +107,60 @@ class GemstoneChannel < ApplicationCable::Channel
     end
   end
 
+  # New equipment-based outlay API
   def outlay(json)
     params = JSON.parse(json['json'])
     gemstone_id = params['gemId']
-    gemstone = @player.gemstones.where(player_id: @player_id, id: gemstone_id).first
-    if gemstone.blank?
-      render_error "outlay", json, "gemstone not found", 500
-    else
-      res = gemstone.outlay
-      if res[:error]
-        render_error "outlay", json, res[:error], 500
+    equipment_id = params['equipmentId']
+    slot_number = params['slotNumber']
+    
+    if equipment_id.present? && slot_number.present?
+      # New equipment-based outlay
+      equipment = @player.equipments.find_by(id: equipment_id)
+      
+      if equipment.blank?
+        render_error "outlay", json, "Equipment not found", 404
+        return
+      end
+      
+      result = equipment.remove_gem(slot_number)
+      
+      if result[:success]
+        @player.reload
+        render_response "outlay", json, {
+          success: true,
+          equipment_id: equipment_id,
+          slot_number: slot_number,
+          updated_equipment: equipment.reload.as_ws_json,
+          inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+        }
       else
+        render_error "outlay", json, result[:error], 400
+      end
+    else
+      # Legacy gemstone-based outlay
+      gemstone = @player.gemstones.find_by(id: gemstone_id)
+      
+      if gemstone.blank?
+        render_error "outlay", json, "Gemstone not found", 404
+        return
+      end
+      
+      if gemstone.is_embedded?
+        result = gemstone.outlay_from_equipment
+        if result[:success]
+          @player.reload
+          render_response "outlay", json, {
+            success: true,
+            gem_id: gemstone_id,
+            inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+          }
+        else
+          render_error "outlay", json, result[:error], 400
+        end
+      else
+        # Legacy outlay
+        gemstone.outlay
         render_response "outlay", json, @player.gemstones.map(&:as_ws_json)
       end
     end
@@ -84,5 +175,24 @@ class GemstoneChannel < ApplicationCable::Channel
   def auto_upgrade(json)
     Gemstone.auto_upgrade(@player_id)
     render_response "auto_upgrade", json, { gems: @player.gemstones.map(&:as_ws_json) }
+  end
+  
+  # New API: Get equipment gem status
+  def equipment_gems(json)
+    params = JSON.parse(json['json'])
+    equipment_id = params['equipmentId']
+    
+    equipment = @player.equipments.find_by(id: equipment_id)
+    
+    if equipment.blank?
+      render_error "equipment_gems", json, "Equipment not found", 404
+      return
+    end
+    
+    render_response "equipment_gems", json, {
+      equipment_id: equipment_id,
+      equipment: equipment.as_ws_json,
+      gem_slots: equipment.get_embedded_gems_summary
+    }
   end
 end

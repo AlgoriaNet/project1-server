@@ -7,6 +7,9 @@ class Gemstone < ApplicationRecord
 
   belongs_to :player, class_name: 'Player', foreign_key: :player_id
   belongs_to :gemstone_entry, class_name: 'GemstoneEntry', foreign_key: :entry_id
+  belongs_to :equipment, optional: true, foreign_key: :equipment_id
+  
+  # Legacy associations - keep for migration compatibility
   belongs_to :sidekick, optional: true, class_name: 'Sidekick', foreign_key: :inlay_with_sidekick_id
   belongs_to :hero, optional: true, class_name: 'Hero', foreign_key: :inlay_with_hero_id
 
@@ -35,6 +38,29 @@ class Gemstone < ApplicationRecord
     self
   end
 
+  # New equipment-based inlay method
+  def inlay_with_equipment(equipment, slot_number = 1)
+    return { success: false, error: "Gem is already embedded" } if is_embedded?
+    return { success: false, error: "Invalid slot number" } unless (1..5).include?(slot_number)
+    return { success: false, error: "Part mismatch" } unless equipment.base_equipment.part == self.part
+    
+    # Check if slot is already occupied
+    existing_gem = Gemstone.find_by(equipment_id: equipment.id, slot_number: slot_number)
+    if existing_gem
+      return { success: false, error: "Slot #{slot_number} is already occupied" }
+    end
+    
+    ApplicationRecord.transaction do
+      self.equipment_id = equipment.id
+      self.slot_number = slot_number
+      self.is_in_inventory = false
+      self.save!
+    end
+    
+    { success: true }
+  end
+  
+  # Legacy method - keep for backward compatibility
   def inlay_with(living)
     # 如果该装备已经装备了，就不能再装备
     return false if is_inlaid?
@@ -56,12 +82,33 @@ class Gemstone < ApplicationRecord
     true
   end
 
+  # New equipment-based outlay method
+  def outlay_from_equipment
+    return { success: false, error: "Gem is not embedded" } unless is_embedded?
+    
+    ApplicationRecord.transaction do
+      self.equipment_id = nil
+      self.slot_number = 1
+      self.is_in_inventory = true
+      self.save!
+    end
+    
+    { success: true }
+  end
+  
+  # Legacy outlay method
   def outlay
     self.inlay_with_hero_id = nil
     self.inlay_with_sidekick_id = nil
     self.save!
   end
 
+  # New equipment-based embedding status
+  def is_embedded?
+    self.equipment_id.present?
+  end
+  
+  # Legacy method
   def is_inlaid?
     self.inlay_with_hero_id.present? || self.inlay_with_sidekick_id.present?
   end
@@ -120,6 +167,12 @@ class Gemstone < ApplicationRecord
       level: level,
       quality: quality,
       is_locked: is_locked,
+      # New equipment-based fields
+      equipment_id: equipment_id,
+      slot_number: slot_number,
+      is_in_inventory: is_in_inventory,
+      is_embedded: is_embedded?,
+      # Legacy fields for backward compatibility
       inlay_with_hero_id: inlay_with_hero_id,
       inlay_with_sidekick_id: inlay_with_sidekick_id,
       entry_id: entry_id,
