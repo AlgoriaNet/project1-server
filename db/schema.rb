@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_09_160640) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_25_063728) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -20,6 +20,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_09_160640) do
     t.integer "growth_atk", null: false, comment: "成长攻击力"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "display_name"
   end
 
   create_table "base_items", charset: "utf8", force: :cascade do |t|

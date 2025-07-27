@@ -2,7 +2,7 @@ class Sidekick < ApplicationRecord
   belongs_to :base_sidekick, foreign_key: 'base_id', class_name: 'BaseSidekick'
   belongs_to :player, foreign_key: 'player_id', class_name: 'Player'
 
-  has_many :equipments
+  has_many :equipments, foreign_key: 'equip_with_sidekick_id', class_name: 'Equipment'
 
   # 验证
   validates :base_id, presence: true

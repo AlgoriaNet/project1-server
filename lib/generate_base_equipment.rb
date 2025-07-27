@@ -1,8 +1,12 @@
 class GenerateBaseEquipment
   def self.generate
+    # Delete child equipment records first to avoid foreign key constraint violations
+    Equipment.destroy_all
     BaseEquipment.destroy_all
     CsvConfig.load_base_equipment.each do |base_equipment|
-      BaseEquipment.create(base_equipment)
+      # Remove the id field from CSV data since it conflicts with auto-increment primary key
+      equipment_data = base_equipment.except(:id)
+      BaseEquipment.create(equipment_data)
     end
   end
 

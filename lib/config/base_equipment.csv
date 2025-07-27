@@ -1,38 +1,38 @@
-id,name,description,quality,part,base_atk,growth_atk
-string,string,int,string,int,int
-Shoulder_01,,1,Shoulder,10,2
-Pants_01,,1,Pants,10,2
-Chest_01,,1,Chest,10,2
-Gloves_01,,1,Gloves,10,2
-Helm_01,,1,Helm,10,2
-Boots_01,,1,Boots,10,2
-Shoulder_02,,2,Shoulder,10,2
-Pants_02,,2,Pants,10,2
-Chest_02,,2,Chest,10,2
-Gloves_02,,2,Gloves,10,2
-Helm_02,,2,Helm,10,2
-Boots_02,,2,Boots,10,2
-Shoulder_03,,3,Shoulder,10,2
-Pants_03,,3,Pants,10,2
-Chest_03,,3,Chest,10,2
-Gloves_03,,3,Gloves,10,2
-Helm_03,,3,Helm,10,2
-Boots_03,,3,Boots,10,2
-Shoulder_04,,4,Shoulder,10,2
-Pants_04,,4,Pants,10,2
-Chest_04,,4,Chest,10,2
-Gloves_04,,4,Gloves,10,2
-Helm_04,,4,Helm,10,2
-Boots_04,,4,Boots,10,2
-Shoulder_05,,5,Shoulder,10,2
-Pants_05,,5,Pants,10,2
-Chest_05,,5,Chest,10,2
-Gloves_05,,5,Gloves,10,2
-Helm_05,,5,Helm,10,2
-Boots_05,,5,Boots,10,2
-Shoulder_06,,6,Shoulder,10,2
-Pants_06,,6,Pants,10,2
-Chest_06,,6,Chest,10,2
-Gloves_06,,6,Gloves,10,2
-Helm_06,,6,Helm,10,2
-Boots_06,,6,Boots,10,2
+id,name,display_name,description,quality,part,base_atk,growth_atk
+string,string,string,string,int,string,int,int
+Shoulder_01,Shoulder_01,Basic Shoulderpad,Equipment,1,Shoulder,12,2
+Pants_01,Pants_01,Basic Pants,Equipment,1,Pants,10,2
+Chest_01,Chest_01,Basic Chestplate,Equipment,1,Chest,15,3
+Gloves_01,Gloves_01,Basic Gloves,Equipment,1,Gloves,15,2
+Helm_01,Helm_01,Basic Helmet,Equipment,1,Helm,8,2
+Boots_01,Boots_01,Basic Boots,Equipment,1,Boots,12,2
+Shoulder_02,Shoulder_02,Iron Shoulderpad,Equipment,2,Shoulder,18,3
+Pants_02,Pants_02,Iron Pants,Equipment,2,Pants,16,3
+Chest_02,Chest_02,Iron Chestplate,Equipment,2,Chest,22,4
+Gloves_02,Gloves_02,Iron Gloves,Equipment,2,Gloves,20,3
+Helm_02,Helm_02,Iron Helmet,Equipment,2,Helm,14,3
+Boots_02,Boots_02,Iron Boots,Equipment,2,Boots,18,3
+Shoulder_03,Shoulder_03,Steel Shoulderpad,Equipment,3,Shoulder,24,4
+Pants_03,Pants_03,Steel Pants,Equipment,3,Pants,22,4
+Chest_03,Chest_03,Steel Chestplate,Equipment,3,Chest,28,5
+Gloves_03,Gloves_03,Steel Gloves,Equipment,3,Gloves,26,4
+Helm_03,Helm_03,Steel Helmet,Equipment,3,Helm,20,4
+Boots_03,Boots_03,Steel Boots,Equipment,3,Boots,25,4
+Shoulder_04,Shoulder_04,Mithril Shoulderpad,Equipment,4,Shoulder,32,5
+Pants_04,Pants_04,Mithril Pants,Equipment,4,Pants,28,5
+Chest_04,Chest_04,Mithril Chestplate,Equipment,4,Chest,35,6
+Gloves_04,Gloves_04,Mithril Gloves,Equipment,4,Gloves,32,5
+Helm_04,Helm_04,Mithril Helmet,Equipment,4,Helm,26,5
+Boots_04,Boots_04,Mithril Boots,Equipment,4,Boots,30,5
+Shoulder_05,Shoulder_05,Adamant Shoulderpad,Equipment,5,Shoulder,42,7
+Pants_05,Pants_05,Adamant Pants,Equipment,5,Pants,35,7
+Chest_05,Chest_05,Adamant Chestplate,Equipment,5,Chest,40,8
+Gloves_05,Gloves_05,Adamant Gloves,Equipment,5,Gloves,38,6
+Helm_05,Helm_05,Adamant Helmet,Equipment,5,Helm,35,6
+Boots_05,Boots_05,Adamant Boots,Equipment,5,Boots,36,6
+Shoulder_06,Shoulder_06,Legendary Shoulderpad,Equipment,6,Shoulder,48,9
+Pants_06,Pants_06,Legendary Pants,Equipment,6,Pants,40,8
+Chest_06,Chest_06,Legendary Chestplate,Equipment,6,Chest,50,10
+Gloves_06,Gloves_06,Legendary Gloves,Equipment,6,Gloves,44,7
+Helm_06,Helm_06,Legendary Helmet,Equipment,6,Helm,45,8
+Boots_06,Boots_06,Legendary Boots,Equipment,6,Boots,42,7
