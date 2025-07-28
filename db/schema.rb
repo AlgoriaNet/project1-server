@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_27_032312) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_28_142146) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -136,8 +136,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_27_032312) do
   end
 
   create_table "gemstone_entries", charset: "utf8", force: :cascade do |t|
-    t.string "description"
-    t.string "name"
+    t.string "effect_description"
+    t.string "effect_name"
     t.float "level_1_value"
     t.float "level_2_value"
     t.float "level_3_value"
@@ -156,7 +156,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_27_032312) do
     t.string "name"
     t.string "description"
     t.integer "level"
-    t.integer "quality"
     t.string "access_channels"
     t.bigint "player_id"
     t.integer "entry_id"

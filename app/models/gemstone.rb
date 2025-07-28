@@ -150,22 +150,60 @@ class Gemstone < ApplicationRecord
   def self.get_gemstone_entries_summary(gemstones)
     map = {}
     gemstones.each do |gemstone|
-      entry_name = gemstone.gemstone_entry.name
-      description = gemstone.gemstone_entry.description
+      entry_name = gemstone.gemstone_entry.effect_name
+      description = gemstone.gemstone_entry.effect_description
       map[entry_name] ||= { name: entry_name, description: description, value: 0 }
       map[entry_name][:value] += gemstone.gemstone_entry["level_#{gemstone.level}_value"]
     end
     map.values
   end
 
+  def level_name
+    case level
+    when 1 then "Basic Gem"
+    when 2 then "Prime Gem"
+    when 3 then "Rare Gem"
+    when 4 then "Epic Gem"
+    when 5 then "Legendary Gem"
+    when 6 then "Mythic Gem"
+    when 7 then "Ultimate Gem"
+    end
+  end
+
+  def dynamic_effect_description
+    value = gemstone_entry["level_#{level}_value"]
+    return gemstone_entry.effect_description if value.nil?
+    
+    case gemstone_entry.effect_name
+    when 'Hp' then "Increases maximum health points by #{value.to_i}"
+    when 'SufferedDamage' then "Reduces incoming damage by #{value}%"
+    when 'Atk' then "Increases attack damage by #{value.to_i}"
+    when 'Ctr' then "Increases critical hit rate by #{value}%"
+    when 'Cti' then "Increases critical hit damage by #{value}%"
+    when 'Mechanical' then "Adds mechanical damage to attacks by #{value}%"
+    when 'Light' then "Adds light damage to attacks by #{value}%"
+    when 'Fire' then "Adds fire damage to attacks by #{value}%"
+    when 'Ice' then "Adds ice damage to attacks by #{value}%"
+    when 'Wind' then "Adds wind damage to attacks by #{value}%"
+    when 'Physics' then "Adds physical damage to attacks by #{value}%"
+    when 'Darkly' then "Adds dark damage to attacks by #{value}%"
+    when 'Heal' then "Increases healing effectiveness by #{value}%"
+    when 'Damage' then "Increases overall damage output by #{value}%"
+    when 'Cd' then "Reduces skill cooldown time by #{value}%"
+    when 'Penetrat' then "Increases armor penetration by #{value}%"
+    else
+      gemstone_entry.effect_description
+    end
+  end
+
   def as_ws_json(options = nil)
     {
       id: id,
-      name: gemstone_entry.name,
-      description: gemstone_entry.description,
+      effect_name: gemstone_entry.effect_name,
+      effect_description: dynamic_effect_description,
       part: part,
       level: level,
-      quality: quality,
+      level_name: level_name,
       is_locked: is_locked,
       # New equipment-based fields
       equipment_id: equipment_id,
