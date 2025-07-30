@@ -8,6 +8,7 @@ class EquipmentChannel < ApplicationCable::Channel
 
   def equip(json)
     ActiveRecord::Base.uncached do
+      @player.reload  # Prevent stale inventory data
       params = JSON.parse(json['json'])
       puts "equip params: #{params}"
       
@@ -57,6 +58,7 @@ class EquipmentChannel < ApplicationCable::Channel
 
   def replace(json)
     ActiveRecord::Base.uncached do
+      @player.reload  # Prevent stale inventory data
       params = JSON.parse(json['json'])
       puts "replace params: #{params}"
       

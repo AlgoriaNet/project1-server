@@ -120,6 +120,23 @@ bundle exec rails server -p 3000 -d  # Restart fresh
 ### WebSocket Caching (FIXED)
 Player objects were cached in WebSocket connections causing stale inventory data. Fixed by adding `player.reload` calls to WebSocket methods.
 
+### Equipment API Disruption Incident (2025-07-30)
+⚠️ **CRITICAL LESSON**: Adding equipment directly to database broke WebSocket APIs
+
+**What Happened**: Added 21 equipment items to player 4 using direct database inserts, which caused:
+- WebSocket replace/equip APIs to stop responding completely
+- Frontend operations to hang indefinitely  
+- Required full server restart to restore functionality
+
+**Root Cause**: WebSocket connections cache player inventory data. Direct database changes bypass this cache, causing:
+1. Frontend sees old inventory without new equipment
+2. WebSocket channels have stale `@player` objects
+3. API calls fail silently due to data inconsistency
+
+**Resolution Required**:
+- Server restart: `pkill -f puma && bundle exec rails server -p 3000 -d`
+- Added `@player.reload` to equipment channel methods
+
 ## Current Development Status
 
 ### Completed Systems
@@ -135,6 +152,60 @@ Player objects were cached in WebSocket connections causing stale inventory data
 - Combat stats need balance testing
 - Test framework documentation needed
 - Linting/code quality tools documentation needed
+
+## CRITICAL: Data Modification Safety Rules
+
+### ⚠️ NEVER Directly Modify Player Data Without These Steps
+
+**Before adding equipment, items, or currency to any player:**
+
+1. **Use Existing APIs First**: Check if there are proper APIs for adding items:
+   ```bash
+   # Search for existing methods
+   grep -r "add.*equipment\|create.*equipment" app/
+   grep -r "give.*item\|add.*item" app/
+   ```
+
+2. **Test in Isolation**: Always test data changes on a separate player/environment first
+
+3. **Check WebSocket Impact**: Verify if the data affects any WebSocket channels:
+   ```bash
+   # Find channels that use the data
+   grep -r "player.*equipment\|@player" app/channels/
+   ```
+
+4. **Mandatory Server Restart**: After ANY direct database modifications:
+   ```bash
+   pkill -f puma
+   bundle exec rails server -p 3000 -d
+   ```
+
+5. **Verify API Functionality**: Test all related APIs after data changes:
+   - Equipment equip/replace operations
+   - Inventory loading
+   - Player profile fetching
+
+### Safe Methods for Adding Game Items
+
+**✅ PREFERRED: Use Game APIs**
+```ruby
+# Use existing service methods or APIs
+player.add_equipment(base_equipment_id, attributes)
+# OR through proper channels/controllers
+```
+
+**⚠️ ACCEPTABLE: Rails Console with Restart**
+```ruby
+# Only if no APIs exist
+Equipment.create!(player_id: X, base_equipment_id: Y, ...)
+# MUST restart server immediately after
+```
+
+**❌ NEVER: Direct Database INSERT without restart**
+```sql
+-- This WILL break WebSocket APIs
+INSERT INTO equipments ...
+```
 
 ## Important Files for Analysis
 - `documentation/sidekicks_system_memo.md`: Detailed sidekick system architecture
@@ -243,6 +314,7 @@ Both APIs follow the established pattern and return complete state:
 ### Example Update
 ```markdown
 ## Recent Updates  
+- [2025-07-30] [Data Safety Rules]: Added critical prevention measures after equipment addition broke WebSocket APIs. Documented mandatory server restart requirements and safe data modification procedures.
 - [2025-07-23] [Initial Analysis]: Created comprehensive project overview and documented core game systems, API patterns, and development workflows.
 ```
 
