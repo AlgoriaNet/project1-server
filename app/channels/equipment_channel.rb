@@ -42,12 +42,10 @@ class EquipmentChannel < ApplicationCable::Channel
       if success
         player_profile = PlayerProfile.new(@player_id)
         render_response "equip", json, {
-          data: {
-            type: params['type'],
-            sidekickId: params['sidekickId'],
-            equipmentId: params['equipmentId'],
-            success: true
-          },
+          success: true,
+          type: params['type'],
+          sidekickId: params['sidekickId'],
+          equipmentId: params['equipmentId'],
           player_profile: player_profile.as_ws_json
         }
       else
@@ -81,12 +79,10 @@ class EquipmentChannel < ApplicationCable::Channel
       if success
         player_profile = PlayerProfile.new(@player_id)
         render_response "replace", json, {
-          data: {
-            type: params['type'],
-            sidekickId: params['sidekickId'],
-            equipmentId: params['equipmentId'],
-            success: true
-          },
+          success: true,
+          type: params['type'],
+          sidekickId: params['sidekickId'],
+          equipmentId: params['equipmentId'],
           player_profile: player_profile.as_ws_json
         }
       else
@@ -95,12 +91,4 @@ class EquipmentChannel < ApplicationCable::Channel
     end
   end
 
-private
-
-  def render_error(action, json, message)
-    render_response action, json, {
-      success: false,
-      error: message
-    }
-  end
 end
