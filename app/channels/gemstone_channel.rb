@@ -166,6 +166,85 @@ class GemstoneChannel < ApplicationCable::Channel
     end
   end
 
+  def replace(json)
+    ActiveRecord::Base.uncached do
+      @player.reload  # Prevent stale inventory data
+      params = JSON.parse(json['json'])
+      gemstone_id = params['gemId']
+      equipment_id = params['equipmentId']
+      slot_number = params['slotNumber']
+      
+      # Validate required parameters
+      if gemstone_id.blank?
+        render_error "replace", json, "Gem ID is required", 400
+        return
+      end
+      
+      if equipment_id.blank?
+        render_error "replace", json, "Equipment ID is required", 400
+        return
+      end
+      
+      if slot_number.blank?
+        render_error "replace", json, "Slot number is required", 400
+        return
+      end
+      
+      # Find gemstone and equipment
+      gemstone = @player.gemstones.find_by(id: gemstone_id)
+      equipment = @player.equipments.find_by(id: equipment_id)
+      
+      if gemstone.blank?
+        render_error "replace", json, "Gemstone not found", 404
+        return
+      end
+      
+      if equipment.blank?
+        render_error "replace", json, "Equipment not found", 404
+        return
+      end
+      
+      if gemstone.is_embedded?
+        render_error "replace", json, "Gem is already embedded", 400
+        return
+      end
+      
+      # Check part compatibility
+      if gemstone.part != equipment.base_equipment.part
+        render_error "replace", json, "Gem part (#{gemstone.part}) doesn't match equipment part (#{equipment.base_equipment.part})", 400
+        return
+      end
+      
+      ApplicationRecord.transaction do
+        # Remove existing gem from the slot if any
+        existing_gem = equipment.gemstones.find_by(slot_number: slot_number)
+        if existing_gem
+          result = existing_gem.outlay_from_equipment
+          unless result[:success]
+            render_error "replace", json, "Failed to remove existing gem: #{result[:error]}", 500
+            return
+          end
+        end
+        
+        # Embed the new gem
+        result = gemstone.inlay_with_equipment(equipment, slot_number)
+        if result[:success]
+          @player.reload
+          render_response "replace", json, {
+            success: true,
+            equipment_id: equipment_id,
+            slot_number: slot_number,
+            gem_id: gemstone_id,
+            updated_equipment: equipment.reload.as_ws_json,
+            inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+          }
+        else
+          render_error "replace", json, "Failed to embed new gem: #{result[:error]}", 500
+        end
+      end
+    end
+  end
+
   def upgrade(json)
     gemstone_ids = json['gemstone_ids']
     new = Gemstone.upgrade(@player_id, gemstone_ids)
