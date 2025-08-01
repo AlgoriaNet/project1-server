@@ -137,6 +137,30 @@ Player objects were cached in WebSocket connections causing stale inventory data
 - Server restart: `pkill -f puma && bundle exec rails server -p 3000 -d`
 - Added `@player.reload` to equipment channel methods
 
+### Gemstone Data Loss Incident (2025-08-01)
+⚠️ **CRITICAL LESSON**: Overly broad `destroy_all` in test scripts deleted embedded gems
+
+**What Happened**: During auto merge verification testing, used `Gemstone.where(player_id: player_id).destroy_all` which deleted:
+- ALL gemstones for player 4, including embedded gems on equipment
+- Lost embedded gemstone progression data that player had built up
+- No WebSocket API disruption (used proper APIs, not direct database inserts)
+
+**Root Cause**: Test cleanup was too broad in scope:
+1. Intended to clean up test gems for clean verification
+2. Used `destroy_all` on entire player's gemstone collection instead of filtering
+3. Did not distinguish between test inventory gems and production embedded gems
+
+**Key Differences from Equipment Incident**:
+- **No server restart needed**: Used `Gemstone.generate()` and `save!` (proper APIs)
+- **No WebSocket cache issues**: Followed established game patterns
+- **Data loss, not API disruption**: Lost existing data but APIs remained functional
+
+**Prevention Measures**:
+- Always scope `destroy_all` to specific test data only
+- Use filters like `where(is_in_inventory: true, equipment_id: nil)` for test cleanup
+- Never use broad `destroy_all` on production player data
+- Embedded gems (equipment_id present) should never be touched by test scripts
+
 ## Current Development Status
 
 ### Completed Systems
