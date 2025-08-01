@@ -274,4 +274,35 @@ class GemstoneChannel < ApplicationCable::Channel
       gem_slots: equipment.get_embedded_gems_summary
     }
   end
+
+  # Auto merge gemstones
+  def auto_merge(json)
+    ActiveRecord::Base.uncached do
+      @player.reload # Prevent stale inventory data
+      
+      params = JSON.parse(json['json']) rescue {}
+      
+      # Extract optional filters
+      target_parts = params['target_parts']
+      max_level = params['max_level']
+      
+      options = {}
+      options[:target_parts] = target_parts if target_parts.present?
+      options[:max_level] = max_level.to_i if max_level.present?
+      
+      # Perform auto merge
+      result = Gemstone.auto_merge(@player.id, options)
+      
+      if result[:success]
+        @player.reload # Refresh player data after merges
+        
+        # Add updated inventory to response
+        result[:inventory_gems] = @player.gemstones.where(is_in_inventory: true, equipment_id: nil).map(&:as_ws_json)
+        
+        render_response "auto_merge", json, result
+      else
+        render_error "auto_merge", json, result[:error], 500
+      end
+    end
+  end
 end

@@ -30,18 +30,18 @@ class Gemstone < ApplicationRecord
       # Single attribute from basic attributes (attribute_id 1-11)
       basic_entries = GemstoneEntry.where(attribute_type: 'basic')
       self.entry_id = basic_entries.sample.try(:id) if basic_entries.any?
-      self.secondary_entry_id = nil # Clear secondary for single attribute gems
+      self[:secondary_entry_id] = nil # Clear secondary for single attribute gems
     else
       # Dual attributes from all attributes (1-22) - pick two different ones
       all_entries = GemstoneEntry.all.to_a
       if all_entries.size >= 2
         selected_entries = all_entries.sample(2)
         self.entry_id = selected_entries[0].id
-        self.secondary_entry_id = selected_entries[1].id
+        self[:secondary_entry_id] = selected_entries[1].id
       else
         # Fallback if not enough entries
         self.entry_id = all_entries.sample.try(:id) if all_entries.any?
-        self.secondary_entry_id = nil
+        self[:secondary_entry_id] = nil
       end
     end
     self
@@ -154,6 +154,74 @@ class Gemstone < ApplicationRecord
     else
       false
     end
+  end
+
+  # Auto merge gemstones based on filters
+  def self.auto_merge(player_id, options = {})
+    target_parts = options[:target_parts] || BaseEquipment::PARTS
+    max_level = options[:max_level] || (MAX_LEVEL - 1) # Don't merge max level gems
+    
+    result = {
+      success: true,
+      merged_groups: [],
+      total_operations: 0,
+      total_gems_consumed: 0,
+      total_gems_created: 0
+    }
+    
+    ApplicationRecord.transaction do
+      # Get unembedded inventory gems
+      available_gems = Gemstone.where(
+        player_id: player_id,
+        is_in_inventory: true,
+        equipment_id: nil,
+        part: target_parts,
+        level: MIN_LEVEL..max_level
+      ).group_by { |gem| [gem.part, gem.level] }
+      
+      available_gems.each do |(part, level), gems|
+        merge_count = gems.count / UPGRADE_QUANTITY_COUNT
+        next if merge_count == 0 # Need at least 5 gems
+        
+        merge_count.times do
+          # Take exactly 5 gems for each merge
+          gems_to_merge = gems.shift(UPGRADE_QUANTITY_COUNT)
+          
+          # Remove old gems
+          gems_to_merge.each(&:destroy)
+          
+          # Create new gem with higher level
+          new_gem = Gemstone.generate(level + 1, player_id)
+          new_gem.part = part
+          new_gem.save!
+          
+          # Track operation
+          result[:merged_groups] << {
+            part: part,
+            from_level: level,
+            to_level: level + 1,
+            gems_consumed: UPGRADE_QUANTITY_COUNT,
+            gems_created: 1,
+            new_gem: new_gem.as_ws_json
+          }
+          
+          result[:total_operations] += 1
+          result[:total_gems_consumed] += UPGRADE_QUANTITY_COUNT
+          result[:total_gems_created] += 1
+        end
+      end
+    end
+    
+    result
+  rescue => e
+    {
+      success: false,
+      error: e.message,
+      merged_groups: [],
+      total_operations: 0,
+      total_gems_consumed: 0,
+      total_gems_created: 0
+    }
   end
 
   # 验证升级
