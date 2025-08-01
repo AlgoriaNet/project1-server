@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_28_142146) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_01_062831) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -150,6 +150,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_28_142146) do
     t.float "level_10_value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "growth_factor", precision: 5, scale: 3
+    t.string "attribute_type", default: "basic"
+    t.integer "attribute_id"
   end
 
   create_table "gemstones", charset: "utf8", force: :cascade do |t|
@@ -168,8 +171,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_28_142146) do
     t.bigint "equipment_id"
     t.integer "slot_number", default: 1
     t.boolean "is_in_inventory", default: true
+    t.bigint "secondary_entry_id"
     t.index ["equipment_id", "slot_number"], name: "index_gemstones_on_equipment_id_and_slot_number", unique: true
     t.index ["player_id"], name: "fk_rails_4ea6464855"
+    t.index ["secondary_entry_id"], name: "fk_rails_ff7a298a3a"
   end
 
   create_table "heros", charset: "utf8", force: :cascade do |t|
@@ -277,6 +282,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_28_142146) do
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
   add_foreign_key "equipments", "sidekicks", column: "equip_with_sidekick_id", name: "equipments_sidekicks_id_fk"
   add_foreign_key "gemstones", "equipments"
+  add_foreign_key "gemstones", "gemstone_entries", column: "secondary_entry_id"
   add_foreign_key "gemstones", "players"
   add_foreign_key "orders", "players"
 end

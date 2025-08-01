@@ -103,12 +103,50 @@ The gemstone system allows players to enhance equipment by embedding gems that p
 - Higher-tier gemstones provide significantly more powerful bonuses
 
 ## Technical Implementation Notes
-- Gemstone data is stored in the `Gemstone` model
-- Equipment integration handled through the `Equipment` model's gemstone associations
-- Attribute values calculated dynamically based on the formulas above
-- WebSocket APIs available for gemstone management operations
+
+### Database Schema
+- **`gemstone_entries`**: Stores attribute templates with growth factors and pre-calculated level values
+  - `growth_factor`: Mathematical growth factor (0.12, 0.18, 0.24, 0.3)
+  - `attribute_type`: 'basic' (IDs 1-11) or 'advanced' (IDs 12-22) 
+  - `attribute_id`: Maps to the 22-attribute system
+- **`gemstones`**: Player-owned gemstone instances
+  - `entry_id`: Primary attribute (always present)
+  - `secondary_entry_id`: Secondary attribute (levels 5-7 only)
+  - Equipment integration via `equipment_id` and `slot_number`
+
+### Value Calculation Implementation
+```ruby
+# Single attribute gems (levels 1-4)
+primary_value = 100 × growth_factor × (level²)
+
+# Dual attribute gems (levels 5-7)  
+primary_value = 100 × growth_factor × (level²) × 0.75
+secondary_value = 100 × growth_factor × (level²) × 0.75
+```
+
+### Generation Logic
+- **Levels 1-4**: Single attribute from basic attributes (attribute_type='basic')
+- **Levels 5-7**: Dual attributes from all 22 attributes, no duplicates
+
+### API Integration
+- WebSocket APIs in `GemstoneChannel` handle embedding/removal operations
+- `Equipment` model manages 5 gemstone slots per equipment piece
+- Complete state responses prevent race conditions per project API guidelines
+
+### Example API Response
+```json
+{
+  "id": 721,
+  "effect_name": "Light", 
+  "effect_description": "Light: +882.0% | Close Range: +661.5%",
+  "level": 7,
+  "has_dual_attributes": true,
+  "primary_attribute": {"name": "Light", "value": "882.0", "attribute_id": 9},
+  "secondary_attribute": {"name": "Close Range", "value": "661.5", "attribute_id": 18}
+}
+```
 
 ---
 
-*Last Updated: 2025-08-01*
-*Based on: Game design specifications and system analysis*
+*Last Updated: 2025-08-01*  
+*Implementation Status: ✅ Complete - Formula-based system with dual attributes implemented*

@@ -7,6 +7,7 @@ class Gemstone < ApplicationRecord
 
   belongs_to :player, class_name: 'Player', foreign_key: :player_id
   belongs_to :gemstone_entry, class_name: 'GemstoneEntry', foreign_key: :entry_id
+  belongs_to :secondary_gemstone_entry, class_name: 'GemstoneEntry', foreign_key: :secondary_entry_id, optional: true
   belongs_to :equipment, optional: true, foreign_key: :equipment_id
   
   # Legacy associations - keep for migration compatibility
@@ -24,7 +25,25 @@ class Gemstone < ApplicationRecord
   end
 
   def random_entry
-    self.entry_id = GemstoneEntry.where("level_#{self.level}_value > 0").sample.try(:id)
+    # New system: Levels 1-4 get basic attributes (1-11), Levels 5-7 get dual attributes (1-22)
+    if self.level <= 4
+      # Single attribute from basic attributes (attribute_id 1-11)
+      basic_entries = GemstoneEntry.where(attribute_type: 'basic')
+      self.entry_id = basic_entries.sample.try(:id) if basic_entries.any?
+      self.secondary_entry_id = nil # Clear secondary for single attribute gems
+    else
+      # Dual attributes from all attributes (1-22) - pick two different ones
+      all_entries = GemstoneEntry.all.to_a
+      if all_entries.size >= 2
+        selected_entries = all_entries.sample(2)
+        self.entry_id = selected_entries[0].id
+        self.secondary_entry_id = selected_entries[1].id
+      else
+        # Fallback if not enough entries
+        self.entry_id = all_entries.sample.try(:id) if all_entries.any?
+        self.secondary_entry_id = nil
+      end
+    end
     self
   end
 
@@ -171,33 +190,68 @@ class Gemstone < ApplicationRecord
   end
 
   def dynamic_effect_description
-    value = gemstone_entry["level_#{level}_value"]
-    return gemstone_entry.effect_description if value.nil?
+    descriptions = []
     
-    case gemstone_entry.effect_name
-    when 'Hp' then "Increases maximum health points by #{value.to_i}"
-    when 'SufferedDamage' then "Reduces incoming damage by #{value}%"
-    when 'Atk' then "Increases attack damage by #{value.to_i}"
-    when 'Ctr' then "Increases critical hit rate by #{value}%"
-    when 'Cti' then "Increases critical hit damage by #{value}%"
-    when 'Mechanical' then "Adds mechanical damage to attacks by #{value}%"
-    when 'Light' then "Adds light damage to attacks by #{value}%"
-    when 'Fire' then "Adds fire damage to attacks by #{value}%"
-    when 'Ice' then "Adds ice damage to attacks by #{value}%"
-    when 'Wind' then "Adds wind damage to attacks by #{value}%"
-    when 'Physics' then "Adds physical damage to attacks by #{value}%"
-    when 'Darkly' then "Adds dark damage to attacks by #{value}%"
-    when 'Heal' then "Increases healing effectiveness by #{value}%"
-    when 'Damage' then "Increases overall damage output by #{value}%"
-    when 'Cd' then "Reduces skill cooldown time by #{value}%"
-    when 'Penetrat' then "Increases armor penetration by #{value}%"
+    # Primary attribute
+    primary_value = calculated_primary_value
+    descriptions << build_effect_description(gemstone_entry, primary_value)
+    
+    # Secondary attribute (for levels 5-7)
+    if has_dual_attributes? && secondary_gemstone_entry
+      secondary_value = calculated_secondary_value
+      descriptions << build_effect_description(secondary_gemstone_entry, secondary_value)
+    end
+    
+    descriptions.join("\n")
+  end
+  
+  def calculated_primary_value
+    return 0 unless gemstone_entry&.growth_factor
+    base_value = 100 * gemstone_entry.growth_factor * (level ** 2)
+    has_dual_attributes? ? (base_value * 0.75) : base_value
+  end
+  
+  def calculated_secondary_value
+    return 0 unless secondary_gemstone_entry&.growth_factor
+    100 * secondary_gemstone_entry.growth_factor * (level ** 2) * 0.75
+  end
+  
+  def has_dual_attributes?
+    level >= 5
+  end
+  
+  def build_effect_description(entry, value)
+    return entry.effect_description if value.nil? || value == 0
+    
+    # Use the updated UI-friendly description with formatted value
+    formatted_value = format_attribute_value(entry, value)
+    "#{entry.effect_description} +#{formatted_value}"
+  end
+  
+  def format_attribute_value(entry, value)
+    case entry.effect_name
+    when 'Hp', 'Atk', 'Elite Heal', 'Kill Heal', 'Crisis Regen'
+      # Flat values (no percentage) - always show as integers
+      value.round.to_s
+    when 'Ctr', 'Cti', 'Mechanical', 'Light', 'Fire', 'Ice', 'Wind', 'Physics', 'Darkly', 
+         'SufferedDamage', 'Heal', 'Cd', 'Penetrat', 'Damage',
+         'Low Hp Boost', 'Close Range', 'Auto Strike'
+      # Percentage values - clean formatting
+      if value % 1 == 0
+        "#{value.to_i}%"
+      elsif (value * 10) % 1 == 0  # e.g., 337.5 -> show as 337.5%
+        "#{value.round(1)}%"
+      else
+        "#{value.round}%"  # Round to nearest integer for complex decimals
+      end
     else
-      gemstone_entry.effect_description
+      # Default: clean number formatting
+      value % 1 == 0 ? value.to_i.to_s : value.round(1).to_s
     end
   end
 
   def as_ws_json(options = nil)
-    {
+    result = {
       id: id,
       effect_name: gemstone_entry.effect_name,
       effect_description: dynamic_effect_description,
@@ -214,7 +268,26 @@ class Gemstone < ApplicationRecord
       inlay_with_hero_id: inlay_with_hero_id,
       inlay_with_sidekick_id: inlay_with_sidekick_id,
       entry_id: entry_id,
-      entry_value: gemstone_entry["level_#{level}_value"]
+      entry_value: calculated_primary_value,
+      # New dual attribute fields
+      has_dual_attributes: has_dual_attributes?,
+      primary_attribute: {
+        name: gemstone_entry.effect_name,
+        value: calculated_primary_value,
+        attribute_id: gemstone_entry.attribute_id
+      }
     }
+    
+    # Add secondary attribute info for dual attribute gems
+    if has_dual_attributes? && secondary_gemstone_entry
+      result[:secondary_attribute] = {
+        name: secondary_gemstone_entry.effect_name,
+        value: calculated_secondary_value,
+        attribute_id: secondary_gemstone_entry.attribute_id
+      }
+      result[:secondary_entry_id] = secondary_entry_id
+    end
+    
+    result
   end
 end
