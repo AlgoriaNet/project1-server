@@ -43,3 +43,4 @@ int,string,string,int,bool,string
 30018,SKb_18_Ugra,,4,TRUE,skill_book
 30019,SKb_19_Eleanor,,4,TRUE,skill_book
 30020,SKb_20_Nyx,,4,TRUE,skill_book
+40001,crystal,Crystalline material used for equipment forging,3,TRUE,currency

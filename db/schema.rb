@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_01_083628) do
+ActiveRecord::Schema[7.1].define(version: 2025_08_02_064144) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -129,6 +129,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_01_083628) do
     t.bigint "equip_with_hero_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "total_crystals_spent", default: 0, null: false, comment: "Total crystals spent on forging this equipment"
     t.index ["base_equipment_id"], name: "equipments_base_equipments_id_fk"
     t.index ["equip_with_hero_id"], name: "equipments_heros_id_fk"
     t.index ["equip_with_sidekick_id"], name: "equipments_sidekicks_id_fk"

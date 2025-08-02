@@ -91,4 +91,34 @@ class EquipmentChannel < ApplicationCable::Channel
     end
   end
 
+  def dismantle(json)
+    ActiveRecord::Base.uncached do
+      @player.reload  # Prevent stale inventory data
+      params = JSON.parse(json['json'])
+      puts "dismantle params: #{params}"
+      
+      return render_error("dismantle", json, "Equipment ID is required") if params['equipmentId'].blank?
+      equipment = @player.equipments.where(id: params['equipmentId']).first
+      return render_error("dismantle", json, "Equipment not found") if equipment.blank?
+      
+      # Dismantle the equipment
+      result = equipment.dismantle
+      
+      if result[:success]
+        @player.reload # Refresh player data after dismantle
+        player_profile = PlayerProfile.new(@player_id)
+        render_response "dismantle", json, {
+          success: true,
+          equipmentId: params['equipmentId'],
+          crystals_rewarded: result[:crystals_rewarded],
+          base_crystals: result[:base_crystals],
+          refund_crystals: result[:refund_crystals],
+          player_profile: player_profile.as_ws_json[:Player]
+        }
+      else
+        render_error("dismantle", json, result[:error] || "Failed to dismantle equipment")
+      end
+    end
+  end
+
 end

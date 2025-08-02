@@ -110,6 +110,38 @@ class Equipment < ApplicationRecord
     self.save!
   end
 
+  # 分解装备 (只能分解背包中的备用装备)
+  def dismantle
+    # Check if equipment is equipped - equipped equipment cannot be dismantled
+    if self.is_equipped?
+      return {
+        success: false,
+        error: "Cannot dismantle equipped equipment. Only spare equipment in pack can be dismantled.",
+        equipment_id: self.id
+      }
+    end
+    
+    # Calculate crystal reward
+    base_crystals = 10
+    refund_crystals = (self.total_crystals_spent * 0.8).to_i
+    total_crystals = base_crystals + refund_crystals
+    
+    # Add crystals to player
+    self.player.add_item!("crystal", total_crystals, "equipment_dismantle")
+    
+    # Delete the equipment
+    result = {
+      success: true,
+      crystals_rewarded: total_crystals,
+      base_crystals: base_crystals,
+      refund_crystals: refund_crystals,
+      equipment_id: self.id
+    }
+    
+    self.destroy!
+    result
+  end
+
   def is_equipped?
     self.equip_with_hero_id.present? || self.equip_with_sidekick_id.present?
   end
@@ -126,6 +158,7 @@ class Equipment < ApplicationRecord
       additional_attributes: self.additional_attributes,
       equip_with_hero_id: self.equip_with_hero_id,
       equip_with_sidekick_id: self.equip_with_sidekick_id,
+      total_crystals_spent: self.total_crystals_spent,
       embedded_gems: get_embedded_gems_summary
     }.merge(self.base_equipment.as_ws_json.symbolize_keys)
   end

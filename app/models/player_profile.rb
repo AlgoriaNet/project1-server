@@ -11,12 +11,15 @@ class PlayerProfile
     @player.reload
     player_data = @player.as_ws_json
     
-    {
-      Player: player_data.merge({
-                                 equipments: Equipment.includes(:base_equipment).where(player_id: @player_id).reload.map(&:as_ws_json),
-                                 gemstones: Gemstone.includes(:gemstone_entry).where(player_id: @player_id).reload.map(&:as_ws_json),
-                                 sidekicks: Sidekick.includes(:base_sidekick).where(player_id: @player_id).reload.map(&:as_ws_json),
-                               }),
-    }
+    # Use uncached queries to ensure fresh data after mutations
+    ActiveRecord::Base.uncached do
+      {
+        Player: player_data.merge({
+                                   equipments: Equipment.includes(:base_equipment).where(player_id: @player_id).map(&:as_ws_json),
+                                   gemstones: Gemstone.includes(:gemstone_entry).where(player_id: @player_id).map(&:as_ws_json),
+                                   sidekicks: Sidekick.includes(:base_sidekick).where(player_id: @player_id).map(&:as_ws_json),
+                                 }),
+      }
+    end
   end
 end
