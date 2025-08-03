@@ -240,9 +240,107 @@ class Gemstone < ApplicationRecord
       entry_name = gemstone.gemstone_entry.effect_name
       description = gemstone.gemstone_entry.effect_description
       map[entry_name] ||= { name: entry_name, description: description, value: 0 }
-      map[entry_name][:value] += gemstone.gemstone_entry["level_#{gemstone.level}_value"]
+      map[entry_name][:value] += gemstone.calculated_primary_value
     end
     map.values
+  end
+  
+  # Auto embed gemstones into equipment slots
+  def self.auto_embed(player_id, equipment_id)
+    player = Player.find(player_id)
+    equipment = player.equipments.find(equipment_id)
+    
+    result = {
+      success: true,
+      operations: [],
+      total_embedded: 0
+    }
+    
+    ApplicationRecord.transaction do
+      # Get available gems in inventory
+      available_gems = player.gemstones.where(
+        is_in_inventory: true,
+        equipment_id: nil
+      )
+      
+      # Process each slot (1-5)
+      (1..5).each do |slot_number|
+        current_gem = equipment.gemstones.find_by(slot_number: slot_number)
+        
+        if current_gem.nil?
+          # Empty slot - find best gem for this part
+          best_gem = choose_gem_for_empty_slot(equipment.base_equipment.part, available_gems)
+          
+          if best_gem
+            embed_result = best_gem.inlay_with_equipment(equipment, slot_number)
+            if embed_result[:success]
+              available_gems = available_gems.where.not(id: best_gem.id) # Remove from available
+              result[:operations] << {
+                action: "embed",
+                slot: slot_number,
+                gem: best_gem.as_ws_json
+              }
+              result[:total_embedded] += 1
+            end
+          end
+        else
+          # Occupied slot - find replacement gem
+          replacement_gem = find_replacement_gem(current_gem, available_gems)
+          
+          if replacement_gem
+            # Remove current gem
+            current_gem.outlay_from_equipment
+            
+            # Embed replacement
+            embed_result = replacement_gem.inlay_with_equipment(equipment, slot_number)
+            if embed_result[:success]
+              available_gems = available_gems.where.not(id: replacement_gem.id) # Remove from available
+              result[:operations] << {
+                action: "replace",
+                slot: slot_number,
+                old_gem: current_gem.as_ws_json,
+                new_gem: replacement_gem.as_ws_json
+              }
+              result[:total_embedded] += 1
+            end
+          end
+        end
+      end
+    end
+    
+    result
+  rescue => e
+    {
+      success: false,
+      error: e.message,
+      operations: [],
+      total_embedded: 0
+    }
+  end
+  
+  # Choose gem for empty slot: highest level, break ties with lowest attribute_id
+  def self.choose_gem_for_empty_slot(part, available_gems)
+    part_gems = available_gems.select { |g| g.part == part }
+    return nil if part_gems.empty?
+    
+    # Step 1: Find highest level available
+    max_level = part_gems.map(&:level).max
+    highest_level_gems = part_gems.select { |g| g.level == max_level }
+    
+    # Step 2: If multiple at max level, pick lowest attribute_id
+    highest_level_gems.min_by { |gem| gem.gemstone_entry.attribute_id }
+  end
+  
+  # Find replacement gem: same part, same attribute, higher level
+  def self.find_replacement_gem(current_gem, available_gems)
+    candidates = available_gems.select do |gem|
+      gem.part == current_gem.part &&
+      gem.gemstone_entry.attribute_id == current_gem.gemstone_entry.attribute_id &&
+      gem.level > current_gem.level
+    end
+    
+    # Pick highest level of same attribute type
+    candidates.max_by(&:level)
   end
 
   def level_name
@@ -273,15 +371,22 @@ class Gemstone < ApplicationRecord
     descriptions.join("\n")
   end
   
+  # Level multipliers for professional progression
+  LEVEL_MULTIPLIERS = [1.0, 1.5, 2.0, 2.5, 3.5, 4.5, 6.0].freeze
+  
   def calculated_primary_value
-    return 0 unless gemstone_entry&.growth_factor
-    base_value = 100 * gemstone_entry.growth_factor * (level ** 2)
-    has_dual_attributes? ? (base_value * 0.75) : base_value
+    return 0 unless gemstone_entry&.base_value
+    base_value = gemstone_entry.base_value
+    multiplier = LEVEL_MULTIPLIERS[level - 1] || 1.0
+    calculated_value = base_value * multiplier
+    has_dual_attributes? ? (calculated_value * 0.75) : calculated_value
   end
   
   def calculated_secondary_value
-    return 0 unless secondary_gemstone_entry&.growth_factor
-    100 * secondary_gemstone_entry.growth_factor * (level ** 2) * 0.75
+    return 0 unless secondary_gemstone_entry&.base_value
+    base_value = secondary_gemstone_entry.base_value
+    multiplier = LEVEL_MULTIPLIERS[level - 1] || 1.0
+    (base_value * multiplier) * 0.75
   end
   
   def has_dual_attributes?
@@ -298,12 +403,14 @@ class Gemstone < ApplicationRecord
   
   def format_attribute_value(entry, value)
     case entry.effect_name
-    when 'Hp', 'Atk', 'Elite Heal', 'Kill Heal', 'Crisis Regen'
+    when 'Hp', 'Atk', 'Kill Heal', 'Auto Strike', 'Crisis Regen', 'Kill Gold'
       # Flat values (no percentage) - always show as integers
       value.round.to_s
+    when 'Invincibility'
+      # Duration in seconds
+      value % 1 == 0 ? "#{value.to_i}s" : "#{value.round(1)}s"
     when 'Ctr', 'Cti', 'Mechanical', 'Light', 'Fire', 'Ice', 'Wind', 'Physics', 'Darkly', 
-         'SufferedDamage', 'Heal', 'Cd', 'Penetrat', 'Damage',
-         'Low Hp Boost', 'Close Range', 'Auto Strike'
+         'Elite Heal', 'Low HP Boost', 'Close Range', 'Damage Reduction', 'Elite Boost', 'High HP Damage'
       # Percentage values - clean formatting
       if value % 1 == 0
         "#{value.to_i}%"
