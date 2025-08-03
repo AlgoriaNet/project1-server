@@ -22,7 +22,7 @@ class Equipment < ApplicationRecord
   serialize :nearby_attributes, type: Hash, coder: JSON
 
   def self.init(base_id, player_id)
-    e = Equipment.new(base_equipment_id: base_id, player_id: player_id)
+    e = Equipment.new(base_equipment_id: base_id, player_id: player_id, intensify_level: 1)
     e.washing
     e.save!
   end
@@ -81,14 +81,173 @@ class Equipment < ApplicationRecord
     self.save!
   end
 
-  # 强化
-  def intensify
+  # Enhancement system constants
+  MAX_ENHANCEMENT_LEVEL = 12
+  MIN_ENHANCEMENT_LEVEL = 1  # Equipment starts at level 1
+  
+  # Enhancement attack bonus per quality level
+  ENHANCEMENT_ATTACK_BONUS = {
+    1 => 5,   # Quality 1: +5 attack per enhancement
+    2 => 5,   # Quality 2: +5 attack per enhancement  
+    3 => 5,   # Quality 3: +5 attack per enhancement
+    4 => 10,  # Quality 4: +10 attack per enhancement
+    5 => 10,  # Quality 5: +10 attack per enhancement
+    6 => 15   # Quality 6: +15 attack per enhancement
+  }.freeze
 
+  # Calculate enhancement cost for upgrading from current level
+  def self.enhancement_cost(from_level)
+    return nil if from_level < MIN_ENHANCEMENT_LEVEL || from_level >= MAX_ENHANCEMENT_LEVEL
+    
+    # Cost calculation: Level 1→2 uses index 0, Level 2→3 uses index 1, etc.
+    cost_index = from_level - 1
+    crystal_cost = 100 + cost_index * 30 + cost_index ** 2 * 5
+    gold_cost = (1500 * (1.4 ** cost_index)).round
+    
+    { crystals: crystal_cost, gold: gold_cost }
+  end
+  
+  # Get enhancement cost for this equipment's next level
+  def enhancement_cost
+    Equipment.enhancement_cost(self.intensify_level)
+  end
+  
+  # Calculate total attack bonus from enhancement
+  def enhancement_attack_bonus
+    return 0 if intensify_level < MIN_ENHANCEMENT_LEVEL
+    
+    quality = self.base_equipment.quality
+    bonus_per_level = ENHANCEMENT_ATTACK_BONUS[quality] || 5
+    (intensify_level - MIN_ENHANCEMENT_LEVEL) * bonus_per_level  # Level 1 = 0 bonus, Level 2 = 1 bonus, etc.
+  end
+  
+  # Calculate total attack including base + enhancement
+  def total_attack
+    base_attack = self.base_equipment.base_atk
+    enhancement_bonus = enhancement_attack_bonus
+    base_attack + enhancement_bonus
+  end
+  
+  # Get enhancement preview for UI display
+  def enhancement_preview
+    return nil unless can_enhance?
+    
+    current_attack = total_attack
+    cost = enhancement_cost
+    
+    # Calculate next level attack
+    quality = self.base_equipment.quality
+    bonus_per_level = ENHANCEMENT_ATTACK_BONUS[quality] || 5
+    next_attack = current_attack + bonus_per_level
+    
+    {
+      current_level: intensify_level,
+      next_level: intensify_level + 1,
+      current_attack: current_attack,
+      next_attack: next_attack,
+      attack_increase: bonus_per_level,
+      cost: cost
+    }
+  end
+  
+  # Check if equipment can be enhanced
+  def can_enhance?
+    intensify_level < MAX_ENHANCEMENT_LEVEL
   end
 
-  # 自动强化
-  def auto_intensify
-    # todo
+  # 强化 (Enhancement)
+  def intensify
+    unless can_enhance?
+      return {
+        success: false,
+        error: "Equipment is already at maximum enhancement level (#{MAX_ENHANCEMENT_LEVEL})",
+        current_level: intensify_level
+      }
+    end
+    
+    cost = enhancement_cost
+    unless cost
+      return {
+        success: false,
+        error: "Invalid enhancement level",
+        current_level: intensify_level
+      }
+    end
+    
+    # Check if player has enough resources
+    current_crystals = player.items_json["crystal"] || 0
+    current_gold = player.gold_coin || 0
+    
+    if current_crystals < cost[:crystals] || current_gold < cost[:gold]
+      return {
+        success: false,
+        error: "Insufficient resources",
+        required: cost,
+        current: { crystals: current_crystals, gold: current_gold },
+        current_level: intensify_level
+      }
+    end
+    
+    ApplicationRecord.transaction do
+      # Deduct resources
+      player.remove_item!("crystal", cost[:crystals], "equipment_enhancement")
+      player.gold_coin -= cost[:gold]
+      player.save!
+      
+      # Increase enhancement level
+      old_level = intensify_level
+      self.intensify_level += 1
+      self.total_crystals_spent += cost[:crystals]
+      self.save!
+      
+      {
+        success: true,
+        old_level: old_level,
+        new_level: intensify_level,
+        cost_paid: cost,
+        attack_bonus: enhancement_attack_bonus,
+        total_attack: total_attack
+      }
+    end
+  rescue => e
+    {
+      success: false,
+      error: e.message,
+      current_level: intensify_level
+    }
+  end
+
+  # 自动强化 (Auto Enhancement)
+  def auto_intensify(target_level = nil)
+    target_level ||= MAX_ENHANCEMENT_LEVEL
+    target_level = [target_level, MAX_ENHANCEMENT_LEVEL].min
+    
+    results = []
+    total_crystals = 0
+    total_gold = 0
+    
+    ApplicationRecord.transaction do
+      while intensify_level < target_level
+        result = intensify
+        
+        unless result[:success]
+          # Stop auto enhancement on failure
+          break
+        end
+        
+        results << result
+        total_crystals += result[:cost_paid][:crystals]
+        total_gold += result[:cost_paid][:gold]
+      end
+    end
+    
+    {
+      success: results.any?,
+      enhancements_performed: results.size,
+      final_level: intensify_level,
+      total_cost: { crystals: total_crystals, gold: total_gold },
+      details: results
+    }
   end
 
   # 升品

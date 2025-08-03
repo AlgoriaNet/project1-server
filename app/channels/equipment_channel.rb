@@ -120,5 +120,145 @@ class EquipmentChannel < ApplicationCable::Channel
       end
     end
   end
+  
+  # Enhancement API
+  def enhance(json)
+    ActiveRecord::Base.uncached do
+      @player.reload # Prevent stale data
+      
+      params = JSON.parse(json['json']) rescue {}
+      equipment_id = params['equipmentId']
+      
+      if equipment_id.blank?
+        render_error "enhance", json, "Equipment ID is required", 400
+        return
+      end
+      
+      equipment = @player.equipments.find_by(id: equipment_id)
+      if equipment.blank?
+        render_error "enhance", json, "Equipment not found", 404
+        return
+      end
+      
+      # Get preview data before enhancement
+      preview = equipment.enhancement_preview
+      current_attack = equipment.total_attack
+      
+      # Perform enhancement
+      result = equipment.intensify
+      
+      if result[:success]
+        @player.reload # Refresh player data after enhancement
+        player_profile = PlayerProfile.new(@player_id)
+        
+        render_response "enhance", json, {
+          success: true,
+          equipment_id: equipment_id,
+          # UI-friendly before/after data
+          before: {
+            level: result[:old_level],
+            attack: current_attack
+          },
+          after: {
+            level: result[:new_level], 
+            attack: result[:total_attack]
+          },
+          # Enhancement details
+          cost_paid: result[:cost_paid],
+          attack_increase: result[:total_attack] - current_attack,
+          updated_equipment: equipment.reload.as_ws_json,
+          player_profile: player_profile.as_ws_json[:Player]
+        }
+      else
+        render_error "enhance", json, result[:error] || "Enhancement failed", 400
+      end
+    end
+  end
+  
+  # Auto Enhancement API
+  def auto_enhance(json)
+    ActiveRecord::Base.uncached do
+      @player.reload # Prevent stale data
+      
+      params = JSON.parse(json['json']) rescue {}
+      equipment_id = params['equipmentId']
+      target_level = params['targetLevel']
+      
+      if equipment_id.blank?
+        render_error "auto_enhance", json, "Equipment ID is required", 400
+        return
+      end
+      
+      equipment = @player.equipments.find_by(id: equipment_id)
+      if equipment.blank?
+        render_error "auto_enhance", json, "Equipment not found", 404
+        return
+      end
+      
+      # Perform auto enhancement
+      result = equipment.auto_intensify(target_level)
+      
+      if result[:success]
+        @player.reload # Refresh player data after enhancement
+        player_profile = PlayerProfile.new(@player_id)
+        
+        render_response "auto_enhance", json, {
+          success: true,
+          equipment_id: equipment_id,
+          enhancements_performed: result[:enhancements_performed],
+          final_level: result[:final_level],
+          total_cost: result[:total_cost],
+          updated_equipment: equipment.reload.as_ws_json,
+          player_profile: player_profile.as_ws_json[:Player]
+        }
+      else
+        render_error "auto_enhance", json, result[:error] || "Auto enhancement failed", 400
+      end
+    end
+  end
+  
+  # Get enhancement cost preview
+  def enhancement_cost(json)
+    params = JSON.parse(json['json']) rescue {}
+    equipment_id = params['equipmentId']
+    
+    if equipment_id.blank?
+      render_error "enhancement_cost", json, "Equipment ID is required", 400
+      return
+    end
+    
+    equipment = @player.equipments.find_by(id: equipment_id)
+    if equipment.blank?
+      render_error "enhancement_cost", json, "Equipment not found", 404
+      return
+    end
+    
+    preview = equipment.enhancement_preview
+    if preview.nil?
+      render_error "enhancement_cost", json, "Equipment cannot be enhanced further", 400
+      return
+    end
+    
+    current_crystals = @player.items_json["crystal"] || 0
+    current_gold = @player.gold_coin || 0
+    
+    render_response "enhancement_cost", json, {
+      equipment_id: equipment_id,
+      # UI-friendly preview data
+      current: {
+        level: preview[:current_level],
+        attack: preview[:current_attack]
+      },
+      next: {
+        level: preview[:next_level],
+        attack: preview[:next_attack]
+      },
+      # Cost and affordability
+      cost: preview[:cost],
+      attack_increase: preview[:attack_increase],
+      can_afford: current_crystals >= preview[:cost][:crystals] && current_gold >= preview[:cost][:gold],
+      player_resources: { crystals: current_crystals, gold: current_gold }
+    }
+  end
 
 end
