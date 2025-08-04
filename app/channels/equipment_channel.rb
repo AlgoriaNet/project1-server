@@ -261,4 +261,59 @@ class EquipmentChannel < ApplicationCable::Channel
     }
   end
 
+  # Washing API - Re-roll equipment attributes for 200 crystals
+  def wash(json)
+    ActiveRecord::Base.uncached do
+      @player.reload # Prevent stale data
+      
+      params = JSON.parse(json['json'])
+      equipment_id = params['equipmentId']
+      
+      if equipment_id.blank?
+        render_error "wash", json, "Equipment ID is required", 400
+        return
+      end
+      
+      equipment = @player.equipments.find_by(id: equipment_id)
+      if equipment.blank?
+        render_error "wash", json, "Equipment not found", 404
+        return
+      end
+      
+      # Check if player has enough crystals
+      current_crystals = @player.items_json["crystal"] || 0
+      wash_cost = 200
+      
+      if current_crystals < wash_cost
+        render_error "wash", json, "Insufficient crystals. Need #{wash_cost} crystals.", 400
+        return
+      end
+      
+      # Store old attributes for comparison
+      old_attributes = equipment.nearby_attributes.dup
+      
+      # Deduct crystals from player first
+      items = @player.items_json
+      items["crystal"] = (items["crystal"] || 0) - wash_cost
+      @player.items_json = items
+      @player.save!
+      
+      # Perform washing (re-roll attributes) - crystals are gone forever, not refundable
+      equipment.washing
+      
+      @player.reload # Refresh player data after washing
+      player_profile = PlayerProfile.new(@player_id)
+      
+      render_response "wash", json, {
+        success: true,
+        equipment_id: equipment_id,
+        cost_paid: wash_cost,
+        old_attributes: old_attributes,
+        new_attributes: equipment.nearby_attributes,
+        updated_equipment: equipment.reload.as_ws_json,
+        player_profile: player_profile.as_ws_json
+      }
+    end
+  end
+
 end

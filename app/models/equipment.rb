@@ -1,7 +1,11 @@
 class Equipment < ApplicationRecord
   self.table_name = 'equipments'
   MAX_INLAY_GEMSTONE_COUNT = 6
+  # OBSOLETE: Old fixed-count washing system
   WASHING_CONFIG = CsvConfig.load_washing_config.reduce({}) { |v, o| v[o[:level]] = o; v }
+  
+  # NEW: Probability-based washing system
+  WASHING_PROBABILITY_CONFIG = CsvConfig.load_washing_probability_config.reduce({}) { |v, o| v[o[:quality]] = o; v }
   WASHING_ENTRIES = [:Mechanical,
                      :Light,
                      :Fire,
@@ -255,16 +259,37 @@ class Equipment < ApplicationRecord
     # todo
   end
 
-  # 洗练
+  # 洗练 - New probability-based washing system
   def washing
-    washing_config = WASHING_CONFIG[self.base_equipment.quality]
-    count = washing_config[:count]
+    washing_config = WASHING_PROBABILITY_CONFIG[self.base_equipment.quality]
+    return false unless washing_config
+    
+    # Determine number of attributes using probability
+    rand_value = rand()
+    attribute_count = if rand_value < washing_config[:prob_1_attr]
+                        1
+                      elsif rand_value < washing_config[:prob_1_attr] + washing_config[:prob_2_attr]
+                        2
+                      else
+                        3
+                      end
+    
+    # Generate random attributes
     nearby_attr = {}
-    (1..count).each do |i|
-      entry = (self.base_equipment.quality >= 6? WASHING_TOP_ENTRIES : WASHING_ENTRIES).sample
-      value = (washing_config[:min_value]..washing_config[:max_value]).to_a.sample
+    available_entries = (self.base_equipment.quality >= 6 ? WASHING_TOP_ENTRIES : WASHING_ENTRIES).dup
+    
+    attribute_count.times do
+      break if available_entries.empty?
+      
+      # Pick random entry and remove it to avoid duplicates
+      entry = available_entries.sample
+      available_entries.delete(entry)
+      
+      # Generate random value within range
+      value = rand(washing_config[:min_value]..washing_config[:max_value])
       nearby_attr[entry] = value
     end
+    
     self.nearby_attributes = nearby_attr
     self.save!
   end

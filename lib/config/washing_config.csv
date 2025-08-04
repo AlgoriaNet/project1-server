@@ -1,3 +1,6 @@
+# OBSOLETE: This file is replaced by washing_probability_config.csv
+# The new system uses probability-based attribute generation instead of fixed counts
+# DO NOT USE THIS FILE - it will be removed in future cleanup
 level, count, max_value, min_value
 int, int, int, int
 1, 2, 5, 2

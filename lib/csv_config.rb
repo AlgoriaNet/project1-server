@@ -56,6 +56,10 @@ class CsvConfig
       load_by_path 'washing_config.csv'
     end
 
+    def load_washing_probability_config
+      load_by_path 'washing_probability_config.csv'
+    end
+
     def load_base_items
       load_by_path 'base_items.csv'
     end

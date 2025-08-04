@@ -331,7 +331,52 @@ Both APIs follow the established pattern and return complete state:
 
 **Error responses** include descriptive messages and appropriate error codes.
 
+## Washing/Forge System
+
+### Forge API Overview
+"Forge" is the main umbrella function containing multiple equipment enhancement operations:
+- **enhance/auto_enhance** - Level up equipment (already implemented)
+- **wash** - Re-roll equipment attributes with probability-based system (implemented)
+- **upgrade** - Quality/tier upgrades (not yet implemented)
+
+### Washing System (Probability-Based)
+
+**Located**: `app/channels/equipment_channel.rb` - `wash` method
+
+**Configuration**: `lib/config/washing_probability_config.csv` (replaces old fixed-count system)
+
+**Probability Rules by Quality**:
+- **Quality 1-2**: 100% chance → 1 attribute, values 2-5
+- **Quality 3**: 60% → 1 attr, 30% → 2 attr, 10% → 3 attr, values 5-10
+- **Quality 4**: 40% → 1 attr, 40% → 2 attr, 20% → 3 attr, values 10-20
+- **Quality 5**: 0% → 1 attr, 40% → 2 attr, 60% → 3 attr, values 20-30
+- **Quality 6**: 0% → 1 attr, 0% → 2 attr, 100% → 3 attr, values 30-50
+
+**API Request Format**:
+```json
+{
+  "action": "wash",
+  "equipmentId": 456
+}
+```
+
+**Cost**: 200 crystals (non-refundable, not included in dismantle refund calculations)
+
+**Response**: Returns complete player state + old/new attributes for UI comparison
+
+**Equipment Quality Mapping**:
+- Equipment names like `Chest_01`, `Helm_01` → Quality 1
+- Equipment names like `Chest_02`, `Helm_02` → Quality 2
+- And so on through Quality 6
+
+### Implementation Details
+- **Probability System**: Uses `rand()` with cumulative probability thresholds
+- **No Duplicate Attributes**: Uses array sampling with removal to prevent duplicates
+- **Attribute Types**: Different sets for Quality 6+ (includes "All" resistance type)
+- **Value Generation**: Random integer within min/max range per quality level
+
 ## Recent Updates
+- [2025-08-04] [Washing System Redesign]: Implemented probability-based washing system replacing fixed-count approach. Added quality-based probability rules (60%/30%/10% for Quality 3, etc.) with appropriate value ranges. Old `washing_config.csv` marked obsolete. System tested and working with expected probability distributions.
 - [2025-07-23] [Equipment API Implementation]: Created dedicated `equip` API for empty slots and enhanced `replace` API with proper error handling and complete state responses. Fixed Sidekick equipment association. Both Hero and Sidekick equipment operations now work correctly with full data consistency.
 ```
 
