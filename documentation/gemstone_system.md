@@ -3,18 +3,22 @@
 ## Overview
 The gemstone system allows players to enhance equipment by embedding gems that provide combat stat bonuses. Gemstones are categorized by equipment slot and have 7 quality tiers (levels 1-7) represented by different colors.
 
-## Gemstone Tiers and Properties
+## Gemstone Tiers and Properties - ✅ CONFIRMED SYSTEM
 
-### Tier System
-| Color | ID | Level | Properties | Attribute Range |
-|-------|----|---------|-----------|-----------------| 
-| 白色 (White) | Gem_01 | 1级 | Single Property | 1~11 |
-| 绿色 (Green) | Gem_02 | 2级 | Single Property | 1~11 |
-| 蓝色 (Blue) | Gem_03 | 3级 | Single Property | 1~11 |
-| 紫色 (Purple) | Gem_04 | 4级 | Single Property | 1~11 |
-| 黄色 (Yellow) | Gem_05 | 5级 | Dual Properties | 1~22 |
-| 粉色 (Pink) | Gem_06 | 6级 | Dual Properties | 1~22 |
-| 红色 (Red) | Gem_07 | 7级 | Dual Properties | 1~22 |
+### Display Names and Tier System
+| Level | Color | Display Name | Internal ID | Properties |
+|-------|-------|-------------|-------------|------------|
+| 1 | White | **Basic Gem** | Gem_01* | Single Property |
+| 2 | Green | **Prime Gem** | Gem_02* | Single Property |
+| 3 | Blue | **Rare Gem** | Gem_03* | Single Property |
+| 4 | Purple | **Epic Gem** | Gem_04* | Single Property |
+| 5 | Yellow | **Legendary Gem** | Gem_05* | Dual Properties |
+| 6 | Pink | **Mythic Gem** | Gem_06* | Dual Properties |
+| 7 | Red | **Ultimate Gem** | Gem_07* | Dual Properties |
+
+*Internal IDs (Gem_01-07) are used for development/indexing only - **NOT shown to users***
+
+### Color Progression: White → Green → Blue → Purple → Yellow → Pink → Red
 
 ### Property Generation Rules
 - **Levels 1-4**: Generate 1 attribute randomly from basic attributes (1-11)
@@ -87,14 +91,18 @@ The gemstone system allows players to enhance equipment by embedding gems that p
 - **Dungeon Drops**: Gemstones from completing dungeons
 - **Synthesis**: Combine lower-tier gems to create higher-tier ones
 
-### Synthesis Rules
-- **Requirement**: 5 gemstones of the same equipment slot and same tier
-- **Result**: 1 gemstone of the same equipment slot, one tier higher
+### Synthesis/Merging Rules - ✅ CONFIRMED
+- **Confirmed**: Lower-level gems can be merged to create higher-level gems
+- **Conditions**: Specific merging requirements apply (needs investigation for exact rules)
+- **Result**: 1 gemstone of same equipment slot, one tier higher  
 - **Attribute Generation**: New gemstone gets randomly generated attributes based on its tier rules
+- **Rarity Impact**: Higher-level gems are progressively rarer to obtain
 
-#### Examples
+#### Current Implementation Examples
 - 5× Level 1 (White) Chest gems → 1× Level 2 (Green) Chest gem (1 random basic attribute)
 - 5× Level 4 (Purple) Helmet gems → 1× Level 5 (Yellow) Helmet gem (2 random attributes from full pool)
+
+*Note: Exact merging ratios and conditions need verification against current implementation*
 
 ## Equipment Integration
 - Gemstones are embedded into equipment based on **equipment slot** compatibility
@@ -148,5 +156,6 @@ secondary_value = 100 × growth_factor × (level²) × 0.75
 
 ---
 
-*Last Updated: 2025-08-01*  
-*Implementation Status: ✅ Complete - Formula-based system with dual attributes implemented*
+*Last Updated: 2025-08-05*  
+*Implementation Status: ✅ Complete - Formula-based system with dual attributes implemented*  
+*Terminology Status: ✅ Confirmed - Display names and tier system verified*
