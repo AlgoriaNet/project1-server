@@ -254,9 +254,144 @@ class Equipment < ApplicationRecord
     }
   end
 
-  # 升品
+  # Constants for upgrade rank system
+  MAX_UPGRADE_RANK = 12
+  MIN_UPGRADE_RANK = 1
+  UPGRADE_PERCENTAGE_PER_RANK = 2.5  # 2.5% per rank for all qualities
+  
+  # Rank-based color system (consistent with gemstone colors)
+  RANK_COLORS = {
+    1 => "#FFFFFF",   # White (Light)
+    2 => "#F0F0F0",   # White (Darker)
+    3 => "#90EE90",   # Green (Light)
+    4 => "#228B22",   # Green (Darker) 
+    5 => "#87CEEB",   # Blue (Light)
+    6 => "#4169E1",   # Blue (Darker)
+    7 => "#DDA0DD",   # Purple (Light)
+    8 => "#8A2BE2",   # Purple (Darker)
+    9 => "#FFFF99",   # Yellow (Light)
+    10 => "#FFD700",  # Yellow (Darker)
+    11 => "#FF6B6B",  # Red (Light)
+    12 => "#DC143C"   # Red (Darker)
+  }.freeze
+  
+  # Get color for current upgrade rank
+  def rank_color
+    RANK_COLORS[upgrade_rank] || RANK_COLORS[1]
+  end
+  
+  # Calculate upgrade rank attack bonus percentage
+  def upgrade_rank_bonus_percentage
+    return 0 if upgrade_rank < MIN_UPGRADE_RANK
+    (upgrade_rank - MIN_UPGRADE_RANK) * UPGRADE_PERCENTAGE_PER_RANK
+  end
+  
+  # Calculate total attack including all bonuses
+  def total_attack_with_rank
+    base_attack = self.base_equipment.base_atk
+    enhancement_bonus = enhancement_attack_bonus
+    rank_percentage = upgrade_rank_bonus_percentage / 100.0
+    
+    total_before_rank = base_attack + enhancement_bonus
+    total_before_rank * (1.0 + rank_percentage)
+  end
+  
+  # Check if equipment can be rank upgraded
+  def can_upgrade_rank?
+    upgrade_rank < MAX_UPGRADE_RANK
+  end
+  
+  # 升品 - Upgrade Rank System
   def upgrade_quality
-    # todo
+    unless can_upgrade_rank?
+      return {
+        success: false,
+        error: "Equipment is already at maximum upgrade rank (#{MAX_UPGRADE_RANK})",
+        current_rank: upgrade_rank
+      }
+    end
+    
+    # Calculate upgrade cost (to be implemented - placeholder for now)
+    cost = calculate_rank_upgrade_cost
+    
+    # Check if player has enough resources
+    current_crystals = player.items_json["crystal"] || 0
+    current_gold = player.gold_coin || 0
+    
+    if current_crystals < cost[:crystals] || current_gold < cost[:gold]
+      return {
+        success: false,
+        error: "Insufficient resources",
+        required: cost,
+        current: { crystals: current_crystals, gold: current_gold },
+        current_rank: upgrade_rank
+      }
+    end
+    
+    ApplicationRecord.transaction do
+      # Deduct resources
+      player.remove_item!("crystal", cost[:crystals], "equipment_rank_upgrade")
+      player.gold_coin -= cost[:gold]
+      player.save!
+      
+      # Increase upgrade rank
+      old_rank = upgrade_rank
+      self.upgrade_rank += 1
+      self.save!
+      
+      {
+        success: true,
+        old_rank: old_rank,
+        new_rank: upgrade_rank,
+        cost_paid: cost,
+        old_percentage: (old_rank - MIN_UPGRADE_RANK) * UPGRADE_PERCENTAGE_PER_RANK,
+        new_percentage: upgrade_rank_bonus_percentage,
+        old_color: RANK_COLORS[old_rank],
+        new_color: rank_color,
+        total_attack: total_attack_with_rank
+      }
+    end
+  rescue => e
+    {
+      success: false,
+      error: e.message,
+      current_rank: upgrade_rank
+    }
+  end
+
+  def as_ws_json
+    return {
+      id: self.id,
+      intensify_level: self.intensify_level,
+      upgrade_rank: self.upgrade_rank,
+      nearby_attributes: self.nearby_attributes,
+      additional_attributes: self.additional_attributes,
+      equip_with_hero_id: self.equip_with_hero_id,
+      equip_with_sidekick_id: self.equip_with_sidekick_id,
+      total_crystals_spent: self.total_crystals_spent,
+      embedded_gems: get_embedded_gems_summary,
+      # Rank-based color and bonuses
+      rank_color: rank_color,
+      rank_bonus_percentage: upgrade_rank_bonus_percentage,
+      total_attack_with_rank: total_attack_with_rank,
+      can_upgrade_rank: can_upgrade_rank?
+    }.merge(self.base_equipment.as_ws_json.symbolize_keys)
+  end
+  
+  private
+  
+  # Calculate cost for rank upgrade (placeholder - needs balancing)
+  def calculate_rank_upgrade_cost
+    # Progressive cost based on current rank
+    base_crystal_cost = 100
+    base_gold_cost = 1000
+    
+    rank_multiplier = upgrade_rank ** 1.5
+    
+    crystals = (base_crystal_cost * rank_multiplier).to_i
+    gold = (base_gold_cost * rank_multiplier).to_i
+    
+    { crystals: crystals, gold: gold }
   end
 
   # 洗练 - New probability-based washing system
@@ -332,18 +467,5 @@ class Equipment < ApplicationRecord
 
   def self.get_not_equipped
     where(equip_with_hero_id: nil).where(equip_with_sidekick_id: nil).all
-  end
-
-  def as_ws_json
-    return {
-      id: self.id,
-      intensify_level: self.intensify_level,
-      nearby_attributes: self.nearby_attributes,
-      additional_attributes: self.additional_attributes,
-      equip_with_hero_id: self.equip_with_hero_id,
-      equip_with_sidekick_id: self.equip_with_sidekick_id,
-      total_crystals_spent: self.total_crystals_spent,
-      embedded_gems: get_embedded_gems_summary
-    }.merge(self.base_equipment.as_ws_json.symbolize_keys)
   end
 end

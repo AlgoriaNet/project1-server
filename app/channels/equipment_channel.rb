@@ -343,4 +343,66 @@ class EquipmentChannel < ApplicationCable::Channel
     render_error "wash", json, "Washing failed: #{e.message}", 500
   end
 
+  # Upgrade Rank API - Increase equipment rank for percentage attack bonus
+  def upgrade_rank(json)
+    ActiveRecord::Base.uncached do
+      @player.reload # Prevent stale data
+      
+      begin
+        params = JSON.parse(json['json'])
+      rescue JSON::ParserError => e
+        render_error "upgrade_rank", json, "Invalid JSON format in request: #{e.message}", 400
+        return
+      end
+      
+      equipment_id = params['equipmentId']
+      
+      if equipment_id.blank?
+        render_error "upgrade_rank", json, "Equipment ID is required", 400
+        return
+      end
+      
+      equipment = @player.equipments.find_by(id: equipment_id)
+      if equipment.blank?
+        render_error "upgrade_rank", json, "Equipment not found", 404
+        return
+      end
+      
+      # Perform rank upgrade
+      result = equipment.upgrade_quality
+      
+      if result[:success]
+        @player.reload # Refresh player data after upgrade
+        player_profile = PlayerProfile.new(@player_id)
+        
+        render_response "upgrade_rank", json, {
+          success: true,
+          equipment_id: equipment_id,
+          # UI-friendly before/after data
+          before: {
+            rank: result[:old_rank],
+            percentage: result[:old_percentage],
+            color: result[:old_color]
+          },
+          after: {
+            rank: result[:new_rank],
+            percentage: result[:new_percentage], 
+            color: result[:new_color]
+          },
+          # Upgrade details
+          cost_paid: result[:cost_paid],
+          total_attack: result[:total_attack],
+          updated_equipment: equipment.reload.as_ws_json,
+          player_profile: player_profile.as_ws_json[:Player]
+        }
+      else
+        render_error "upgrade_rank", json, result[:error] || "Rank upgrade failed", 400
+      end
+    end
+  rescue => e
+    Rails.logger.error "Upgrade Rank API error: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    render_error "upgrade_rank", json, "Rank upgrade failed: #{e.message}", 500
+  end
+
 end
