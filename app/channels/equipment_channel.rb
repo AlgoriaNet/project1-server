@@ -378,20 +378,22 @@ class EquipmentChannel < ApplicationCable::Channel
         render_response "upgrade_rank", json, {
           success: true,
           equipment_id: equipment_id,
-          # UI-friendly before/after data
+          # UI-friendly before/after data (similar to enhance API)
           before: {
             rank: result[:old_rank],
+            attack: result[:old_attack],
             percentage: result[:old_percentage],
             color: result[:old_color]
           },
           after: {
             rank: result[:new_rank],
+            attack: result[:new_attack],
             percentage: result[:new_percentage], 
             color: result[:new_color]
           },
           # Upgrade details
           cost_paid: result[:cost_paid],
-          total_attack: result[:total_attack],
+          attack_increase: result[:attack_increase],
           updated_equipment: equipment.reload.as_ws_json,
           player_profile: player_profile.as_ws_json[:Player]
         }
@@ -403,6 +405,59 @@ class EquipmentChannel < ApplicationCable::Channel
     Rails.logger.error "Upgrade Rank API error: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
     render_error "upgrade_rank", json, "Rank upgrade failed: #{e.message}", 500
+  end
+
+  # Get upgrade rank cost preview
+  def upgrade_rank_cost(json)
+    begin
+      params = JSON.parse(json['json'])
+    rescue JSON::ParserError => e
+      render_error "upgrade_rank_cost", json, "Invalid JSON format in request: #{e.message}", 400
+      return
+    end
+    
+    equipment_id = params['equipmentId']
+    
+    if equipment_id.blank?
+      render_error "upgrade_rank_cost", json, "Equipment ID is required", 400
+      return
+    end
+    
+    equipment = @player.equipments.find_by(id: equipment_id)
+    if equipment.blank?
+      render_error "upgrade_rank_cost", json, "Equipment not found", 404
+      return
+    end
+    
+    preview = equipment.upgrade_rank_preview
+    if preview.nil?
+      render_error "upgrade_rank_cost", json, "Equipment cannot be upgraded further", 400
+      return
+    end
+    
+    current_skillbooks = @player.items_json["SKb_00_Hero"] || 0
+    
+    render_response "upgrade_rank_cost", json, {
+      equipment_id: equipment_id,
+      # UI-friendly preview data
+      current: {
+        rank: preview[:current_rank],
+        attack: preview[:current_attack],
+        percentage: preview[:current_percentage],
+        color: preview[:current_color]
+      },
+      next: {
+        rank: preview[:next_rank],
+        attack: preview[:next_attack],
+        percentage: preview[:next_percentage],
+        color: preview[:next_color]
+      },
+      # Cost and affordability
+      cost: preview[:cost],
+      attack_increase: preview[:attack_increase],
+      can_afford: current_skillbooks >= preview[:cost][:skillbooks],
+      player_resources: { skillbooks: current_skillbooks }
+    }
   end
 
 end
