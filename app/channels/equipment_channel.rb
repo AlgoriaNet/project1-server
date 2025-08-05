@@ -126,7 +126,13 @@ class EquipmentChannel < ApplicationCable::Channel
     ActiveRecord::Base.uncached do
       @player.reload # Prevent stale data
       
-      params = JSON.parse(json['json']) rescue {}
+      begin
+        params = JSON.parse(json['json'])
+      rescue JSON::ParserError => e
+        render_error "enhance", json, "Invalid JSON format in request: #{e.message}", 400
+        return
+      end
+      
       equipment_id = params['equipmentId']
       
       if equipment_id.blank?
@@ -180,7 +186,13 @@ class EquipmentChannel < ApplicationCable::Channel
     ActiveRecord::Base.uncached do
       @player.reload # Prevent stale data
       
-      params = JSON.parse(json['json']) rescue {}
+      begin
+        params = JSON.parse(json['json'])
+      rescue JSON::ParserError => e
+        render_error "auto_enhance", json, "Invalid JSON format in request: #{e.message}", 400
+        return
+      end
+      
       equipment_id = params['equipmentId']
       target_level = params['targetLevel']
       
@@ -219,7 +231,13 @@ class EquipmentChannel < ApplicationCable::Channel
   
   # Get enhancement cost preview
   def enhancement_cost(json)
-    params = JSON.parse(json['json']) rescue {}
+    begin
+      params = JSON.parse(json['json'])
+    rescue JSON::ParserError => e
+      render_error "enhancement_cost", json, "Invalid JSON format in request: #{e.message}", 400
+      return
+    end
+    
     equipment_id = params['equipmentId']
     
     if equipment_id.blank?
@@ -266,7 +284,13 @@ class EquipmentChannel < ApplicationCable::Channel
     ActiveRecord::Base.uncached do
       @player.reload # Prevent stale data
       
-      params = JSON.parse(json['json'])
+      begin
+        params = JSON.parse(json['json'])
+      rescue JSON::ParserError => e
+        render_error "wash", json, "Invalid JSON format in request: #{e.message}", 400
+        return
+      end
+      
       equipment_id = params['equipmentId']
       
       if equipment_id.blank?
@@ -292,14 +316,13 @@ class EquipmentChannel < ApplicationCable::Channel
       # Store old attributes for comparison
       old_attributes = equipment.nearby_attributes.dup
       
-      # Deduct crystals from player first
-      items = @player.items_json
-      items["crystal"] = (items["crystal"] || 0) - wash_cost
-      @player.items_json = items
-      @player.save!
-      
-      # Perform washing (re-roll attributes) - crystals are gone forever, not refundable
-      equipment.washing
+      ApplicationRecord.transaction do
+        # Deduct crystals from player first
+        @player.remove_item!("crystal", wash_cost, "equipment_washing")
+        
+        # Perform washing (re-roll attributes) - crystals are gone forever, not refundable
+        equipment.washing
+      end
       
       @player.reload # Refresh player data after washing
       player_profile = PlayerProfile.new(@player_id)
@@ -314,6 +337,10 @@ class EquipmentChannel < ApplicationCable::Channel
         player_profile: player_profile.as_ws_json
       }
     end
+  rescue => e
+    Rails.logger.error "Washing API error: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    render_error "wash", json, "Washing failed: #{e.message}", 500
   end
 
 end
