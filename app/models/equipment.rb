@@ -61,18 +61,32 @@ class Equipment < ApplicationRecord
   def equip_with(living)
     # 如果该装备已经装备了，就不能再装备
     return false if is_equipped?
-    # 如果该装备的部位已经装备了其他装备, 先卸下
+    # 如果该装备的部位已经装备了其他装备, 先卸下并转移宝石
     puts "living: #{living.id}, equipments_count: #{living.equipments.count}"
     equipped = living.equipments.reload.to_a.select { |equip| equip.base_equipment.part == self.base_equipment.part }
-    equipped.each(&:unequip)
-    if living.class == Hero
-      self.equip_with_hero_id = living.id
-    elsif living.class == Sidekick
-      self.equip_with_sidekick_id = living.id
-    else
-      return false
+    
+    ApplicationRecord.transaction do
+      equipped.each do |old_equipment|
+        # Transfer gems from old equipment to new equipment before unequipping
+        puts "Transferring gems from equipment #{old_equipment.id} to equipment #{self.id}"
+        old_equipment.gemstones.each do |gem|
+          puts "  Moving gem #{gem.id} (#{gem.gemstone_entry.effect_name}) from slot #{gem.slot_number}"
+          gem.equipment_id = self.id
+          gem.save!
+        end
+        old_equipment.unequip
+      end
+      
+      # Equip new equipment
+      if living.class == Hero
+        self.equip_with_hero_id = living.id
+      elsif living.class == Sidekick
+        self.equip_with_sidekick_id = living.id
+      else
+        return false
+      end
+      self.save!
     end
-    self.save!
     true
   end
 
