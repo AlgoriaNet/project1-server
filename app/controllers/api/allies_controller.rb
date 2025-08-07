@@ -1,4 +1,20 @@
 class Api::AlliesController < ApplicationController
+  def index
+    characters = BaseSidekick.order(:id).map do |sidekick|
+      {
+        id: sidekick.id,
+        name: sidekick.name,
+        fragment_name: sidekick.fragment_name
+      }
+    end
+    
+    render json: {
+      success: true,
+      data: {
+        characters: characters
+      }
+    }
+  end
   def upgrade_levels
     ally_id = params[:ally_id]
     sidekick = BaseSidekick.find_by(fragment_name: ally_id)

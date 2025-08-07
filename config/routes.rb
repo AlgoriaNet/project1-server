@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   post "/api/guest_login" => "users#guest_login", as: :guest_login
   
   namespace :api do
+    get "/allies", to: "allies#index"
     get "/allies/:ally_id/upgrade_levels", to: "allies#upgrade_levels"
     get "/level_up_costs", to: "allies#level_up_costs"
   end
