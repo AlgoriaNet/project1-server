@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   namespace :api do
     get "/allies", to: "allies#index"
     get "/allies/:ally_id/upgrade_levels", to: "allies#upgrade_levels"
+    get "/gem-levels", to: "allies#gem_levels"
     get "/level_up_costs", to: "allies#level_up_costs"
   end
 

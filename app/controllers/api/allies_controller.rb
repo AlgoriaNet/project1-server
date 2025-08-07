@@ -32,6 +32,23 @@ class Api::AlliesController < ApplicationController
     }
   end
 
+  def gem_levels
+    gem_levels = (1..7).map do |level|
+      {
+        level: level,
+        id: "Gem_#{level.to_s.rjust(2, '0')}",
+        name: Gemstone.new(level: level).level_name
+      }
+    end
+    
+    render json: {
+      success: true,
+      data: {
+        gem_levels: gem_levels
+      }
+    }
+  end
+
   def level_up_costs
     # Load universal level up costs from CSV
     costs = CsvConfig.load_level_up_costs
