@@ -6,13 +6,13 @@ class CreateTestEquipment
     
     # Create equipment with intensify_level 0-3 as requested in frontend message
     test_equipment = [
-      { name_pattern: 'Legendary Helmet', intensify_level: 3 },
+      { name_pattern: 'Orichalcum Helmet', intensify_level: 3 },
       { name_pattern: 'Mithril Boots', intensify_level: 1 },
-      { name_pattern: 'Basic Pants', intensify_level: 0 },
+      { name_pattern: 'Bronze Pants', intensify_level: 0 },
       { name_pattern: 'Iron Gloves', intensify_level: 0 },
-      { name_pattern: 'Legendary Chestplate', intensify_level: 2 },
-      { name_pattern: 'Legendary Shoulderpad', intensify_level: 1 },
-      { name_pattern: 'Adamant Pants', intensify_level: 0 },
+      { name_pattern: 'Orichalcum Chestplate', intensify_level: 2 },
+      { name_pattern: 'Orichalcum Shoulderpad', intensify_level: 1 },
+      { name_pattern: 'Adamantite Pants', intensify_level: 0 },
       { name_pattern: 'Steel Boots', intensify_level: 0 },
       { name_pattern: 'Mithril Gloves', intensify_level: 1 },
       { name_pattern: 'Steel Helmet', intensify_level: 2 }

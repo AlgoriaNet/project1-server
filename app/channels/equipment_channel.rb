@@ -155,6 +155,9 @@ class EquipmentChannel < ApplicationCable::Channel
       
       if result[:success]
         @player.reload # Refresh player data after enhancement
+        equipment.reload # Ensure equipment data is fresh
+        
+        # Create PlayerProfile AFTER all equipment operations are complete
         player_profile = PlayerProfile.new(@player_id)
         
         render_response "enhance", json, {
@@ -172,7 +175,7 @@ class EquipmentChannel < ApplicationCable::Channel
           # Enhancement details
           cost_paid: result[:cost_paid],
           attack_increase: result[:total_attack] - current_attack,
-          updated_equipment: equipment.reload.as_ws_json,
+          updated_equipment: equipment.as_ws_json,
           player_profile: player_profile.as_ws_json[:Player]
         }
       else
@@ -212,6 +215,9 @@ class EquipmentChannel < ApplicationCable::Channel
       
       if result[:success]
         @player.reload # Refresh player data after enhancement
+        equipment.reload # Ensure equipment data is fresh
+        
+        # Create PlayerProfile AFTER all equipment operations are complete
         player_profile = PlayerProfile.new(@player_id)
         
         render_response "auto_enhance", json, {
@@ -220,7 +226,7 @@ class EquipmentChannel < ApplicationCable::Channel
           enhancements_performed: result[:enhancements_performed],
           final_level: result[:final_level],
           total_cost: result[:total_cost],
-          updated_equipment: equipment.reload.as_ws_json,
+          updated_equipment: equipment.as_ws_json,
           player_profile: player_profile.as_ws_json[:Player]
         }
       else
@@ -325,6 +331,9 @@ class EquipmentChannel < ApplicationCable::Channel
       end
       
       @player.reload # Refresh player data after washing
+      equipment.reload # Ensure equipment data is fresh
+      
+      # Create PlayerProfile AFTER all equipment operations are complete
       player_profile = PlayerProfile.new(@player_id)
       
       render_response "wash", json, {
@@ -333,7 +342,7 @@ class EquipmentChannel < ApplicationCable::Channel
         cost_paid: wash_cost,
         old_attributes: old_attributes,
         new_attributes: equipment.nearby_attributes,
-        updated_equipment: equipment.reload.as_ws_json,
+        updated_equipment: equipment.as_ws_json,
         player_profile: player_profile.as_ws_json
       }
     end
@@ -373,6 +382,9 @@ class EquipmentChannel < ApplicationCable::Channel
       
       if result[:success]
         @player.reload # Refresh player data after upgrade
+        equipment.reload # Ensure equipment data is fresh
+        
+        # Create PlayerProfile AFTER all equipment operations are complete
         player_profile = PlayerProfile.new(@player_id)
         
         render_response "upgrade_rank", json, {
@@ -394,7 +406,7 @@ class EquipmentChannel < ApplicationCable::Channel
           # Upgrade details
           cost_paid: result[:cost_paid],
           attack_increase: result[:attack_increase],
-          updated_equipment: equipment.reload.as_ws_json,
+          updated_equipment: equipment.as_ws_json,
           player_profile: player_profile.as_ws_json[:Player]
         }
       else
