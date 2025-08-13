@@ -328,13 +328,13 @@ class Equipment < ApplicationRecord
     # Calculate upgrade cost
     cost = calculate_rank_upgrade_cost
     
-    # Check if player has enough SKb_00_Hero skillbooks
-    current_skillbooks = player.items_json["SKb_00_Hero"] || 0
+    # Check if player has enough equipScroll
+    current_skillbooks = player.items_json["equipScroll"] || 0
     
     if current_skillbooks < cost[:skillbooks]
       return {
         success: false,
-        error: "Insufficient skillbooks. Need #{cost[:skillbooks]} SKb_00_Hero skillbooks.",
+        error: "Insufficient equipScroll. Need #{cost[:skillbooks]} equipScroll.",
         required: cost,
         current: { skillbooks: current_skillbooks },
         current_rank: upgrade_rank
@@ -343,7 +343,7 @@ class Equipment < ApplicationRecord
     
     ApplicationRecord.transaction do
       # Deduct skillbooks
-      player.remove_item!("SKb_00_Hero", cost[:skillbooks], "equipment_rank_upgrade")
+      player.remove_item!("equipScroll", cost[:skillbooks], "equipment_rank_upgrade")
       
       # Increase upgrade rank
       old_rank = upgrade_rank
@@ -514,9 +514,9 @@ class Equipment < ApplicationRecord
   
   private
   
-  # Calculate cost for rank upgrade using SKb_00_Hero skillbooks
+  # Calculate cost for rank upgrade using equipScroll
   def calculate_rank_upgrade_cost
-    # Fixed cost: 10 SKb_00_Hero skillbooks per upgrade
+    # Fixed cost: 10 equipScroll per upgrade
     { skillbooks: 10 }
   end
 end

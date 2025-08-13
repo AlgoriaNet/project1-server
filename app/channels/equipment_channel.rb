@@ -447,7 +447,7 @@ class EquipmentChannel < ApplicationCable::Channel
       return
     end
     
-    current_skillbooks = @player.items_json["SKb_00_Hero"] || 0
+    current_skillbooks = @player.items_json["equipScroll"] || 0
     
     render_response "upgrade_rank_cost", json, {
       equipment_id: equipment_id,
