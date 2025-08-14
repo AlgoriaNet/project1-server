@@ -1,7 +1,7 @@
 module ApplicationCable
   class Channel < ActionCable::Channel::Base
     def stream_name
-      "#{self.class.name.gsub("Channel")}_#{params[:user_id]}"
+      "#{self.class.name.gsub("Channel", "")}_#{params[:user_id]}"
     end
 
     def receive(data)

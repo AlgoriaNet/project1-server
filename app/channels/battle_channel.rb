@@ -32,11 +32,12 @@ class BattleChannel < ApplicationCable::Channel
     end
   end
 
-  # Battle completion API - handles both victory and defeat rewards
+  # Battle completion API - simple A+B approach
   def battle_complete(json)
     begin
-      victory = json['victory'] # true for victory, false for defeat
-      battle_data = json['battle_data'] || {}
+      _json = JSON.parse(json['json'])  # Parse nested JSON like other channels
+      victory = _json['victory'] # true for victory, false for defeat
+      battle_data = _json['battle_data'] || {}
       
       # Determine base rewards based on battle result
       base_rewards = victory ? VICTORY_BASE_REWARDS : DEFEAT_BASE_REWARDS
@@ -44,7 +45,7 @@ class BattleChannel < ApplicationCable::Channel
       # Generate complete rewards
       rewards = calculate_battle_rewards(base_rewards)
       
-      # Apply rewards to player
+      # Apply rewards to player (save immediately)
       ApplicationRecord.transaction do
         apply_rewards_to_player(rewards)
       end
