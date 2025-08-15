@@ -230,6 +230,9 @@ class BattleChannel < ApplicationCable::Channel
     # Equipment and gemstones are already created and assigned to player
     
     player.save!
+    
+    # Check for level up after EXP gain
+    LevelService.get_level_info(player)
   end
 
   def format_rewards_for_frontend(rewards)
