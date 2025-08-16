@@ -64,11 +64,14 @@ class BattleChannel < ApplicationCable::Channel
   end
 
   def mock_result
-    sidekicks = BaseSidekick.where("id in (1)")
-    levelUpEffects = sidekicks.map{|s| s.base_skill.level_up_effects }.flatten
+    # Get player's deployed sidekicks from lineup
+    deployed_sidekicks = player.sidekicks.where(is_deployed: true).includes(:base_sidekick)
+    base_sidekicks = deployed_sidekicks.map(&:base_sidekick)
+    levelUpEffects = base_sidekicks.map{|s| s.base_skill.level_up_effects }.flatten
+    
     {
       main_stage: {},
-      sidekicks: sidekicks.map(&:as_ws_json),
+      sidekicks: base_sidekicks.map(&:as_ws_json),
       levelUpEffects: levelUpEffects.map(&:as_ws_json)
     }
   end

@@ -6,6 +6,14 @@ class BaseSidekick < ApplicationRecord
   validates :skill_id, presence: true
 
   def as_ws_json
-    super(except: %w[variety_damage character skill_id description])
+    super(except: %w[variety_damage character skill_id description]).merge({
+      'Id' => id,  # Add numeric ID for frontend animation mapping
+      'Name' => name,
+      'Skill' => {
+        'Name' => base_skill.name,
+        'Cd' => base_skill.cd,
+        'Duration' => base_skill.duration
+      }
+    })
   end
 end
