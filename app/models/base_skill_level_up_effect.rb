@@ -9,6 +9,12 @@ class BaseSkillLevelUpEffect < ApplicationRecord
     json.delete("updated_at")
     json.delete("skill_id")
     json["skill_name"] = base_skill.name
+    
+    # Parse Effects JSON string back to hash for Unity compatibility
+    if json["effects"].is_a?(String)
+      json["effects"] = JSON.parse(json["effects"]) rescue json["effects"]
+    end
+    
     {}.tap do |h|
       json.each { |k, v| h[snake_to_camel(k)] = v }
     end
