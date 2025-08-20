@@ -1,0 +1,22 @@
+id,sidekick_id,skill_prefab,skill_name
+int,int,string,string
+1,1,Skill_FireTornado,Fire Tornado
+2,2,Skill_Dummy,Dummy
+3,3,Skill_Wind_Feather,Wind Feather
+4,4,Skill_Storm_Blade,Storm Blade
+5,5,Skill_Black_Hole,Black Hole
+6,6,Skill_Dark_Touch,Dark Touch
+7,7,Skill_Chain_Lightning,Chain Lightning
+8,8,Skill_Dummy,Dummy
+9,9,Skill_IceCrackButlet,Ice Crack Bullet
+10,10,Skill_Inferno,Inferno
+11,11,Skill_Thunder_Bolt,Thunder Bolt
+12,12,Skill_Ice_Spike,Ice Spike
+13,13,Skill_Blazing_Ray,Blazing Ray
+14,14,Skill_Mega_Laser,Mega Laser
+15,15,Skill_Dummy,Dummy
+16,16,Skill_Dummy,Dummy
+17,17,Skill_Bomb_Blast,Bomb Blast
+18,18,Skill_Dummy,Dummy
+19,19,Skill_Ice_Spear,Ice Spear
+20,20,Skill_Dummy,Dummy
