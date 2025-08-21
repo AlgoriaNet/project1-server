@@ -189,7 +189,7 @@ class PlayerChannel < ApplicationCable::Channel
 
   def update_sidekick_deployment(json)
     _json = JSON.parse(json['json'])
-    deployed_base_ids =
+    deployed_base_ids = _json['deployed_ids']
     begin
       if !deployed_base_ids.is_a?(Array)
         render_error "update_sidekick_deployment", json, "deployed_ids must be an array", 400
