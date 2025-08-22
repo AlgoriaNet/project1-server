@@ -29,11 +29,11 @@ class PlayerProfile
   end
 
   def as_ws_json
-    # Reload player data to ensure fresh data for items like heroKey, rareKey, epicKey
+    # CRITICAL: Reload player data to ensure fresh data for items like heroKey, rareKey, epicKey
     @player.reload
     player_data = @player.as_ws_json
     
-    # Use uncached queries to ensure fresh data after mutations
+    # CRITICAL: Use uncached queries to ensure fresh data after deployment mutations
     ActiveRecord::Base.uncached do
       {
         Player: player_data.merge({
