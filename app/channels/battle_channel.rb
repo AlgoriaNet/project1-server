@@ -4,6 +4,8 @@ class BattleChannel < ApplicationCable::Channel
 
   def battle(json)
     begin
+      # CRITICAL: Reload player to ensure fresh data from deployment updates
+      player.reload
       # Check if player has enough stamina (10 stamina per battle)
       stamina_cost = 10
       current_stamina = player.stamina || 0
@@ -64,6 +66,8 @@ class BattleChannel < ApplicationCable::Channel
   end
 
   def mock_result
+    # CRITICAL: Reload player to ensure fresh deployment data from other channel updates
+    player.reload
     # Get player's deployed sidekicks from lineup
     deployed_sidekicks = player.sidekicks.where(is_deployed: true).includes(:base_sidekick)
     base_sidekicks = deployed_sidekicks.map(&:base_sidekick)

@@ -206,6 +206,8 @@ class PlayerChannel < ApplicationCable::Channel
           sidekick.update!(is_deployed: should_deploy)
         end
       end
+      # CRITICAL: Reload player to clear cached associations after deployment changes
+      player.reload
       render_response "update_sidekick_deployment", json, {
         success: true,
         deployed_base_ids: deployed_base_ids
