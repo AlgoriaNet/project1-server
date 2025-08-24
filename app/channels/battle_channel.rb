@@ -20,7 +20,7 @@ class BattleChannel < ApplicationCable::Channel
       player.save!
       
       # Return battle result with updated stamina
-      battle_data = mock_result
+      battle_data = build_battle_data
       battle_data[:player] = {
         id: player.id,
         stamina: player.stamina
@@ -65,7 +65,7 @@ class BattleChannel < ApplicationCable::Channel
     end
   end
 
-  def mock_result
+  def build_battle_data
     # CRITICAL: Reload player to ensure fresh deployment data from other channel updates
     player.reload
     # Get player's deployed sidekicks from lineup
