@@ -1,0 +1,19 @@
+=> Booting Puma
+=> Rails 7.1.5.1 application starting in development 
+=> Run `bin/rails server --help` for more startup options
+[9524] Puma starting in cluster mode...
+[9524] * Puma version: 6.6.0 ("Return to Forever")
+[9524] * Ruby version: ruby 3.0.6p216 (2023-03-30 revision 23a532679b) [arm64-darwin20]
+[9524] *  Min threads: 5
+[9524] *  Max threads: 5
+[9524] *  Environment: development
+[9524] *   Master PID: 9524
+[9524] *      Workers: 4
+[9524] *     Restarts: (✔) hot (✖) phased
+[9524] * Preloading application
+[9524] * Listening on http://0.0.0.0:3000
+[9524] Use Ctrl-C to stop
+[9524] - Worker 0 (PID: 9577) booted in 0.0s, phase: 0
+[9524] - Worker 1 (PID: 9578) booted in 0.0s, phase: 0
+[9524] - Worker 2 (PID: 9579) booted in 0.0s, phase: 0
+[9524] - Worker 3 (PID: 9580) booted in 0.0s, phase: 0
