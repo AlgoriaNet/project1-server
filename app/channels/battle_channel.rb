@@ -72,11 +72,17 @@ class BattleChannel < ApplicationCable::Channel
     deployed_sidekicks = player.sidekicks.where(is_deployed: true).includes(:base_sidekick)
     base_sidekicks = deployed_sidekicks.map(&:base_sidekick)
     
-    # Add hero skill effects to the pool
+    # Create character pool: Hero + deployed sidekicks
     hero_skill = BaseSkill.find(0)
-    hero_effects = hero_skill.level_up_effects
-    sidekick_effects = base_sidekicks.map{|s| s.base_skill.level_up_effects }.flatten
-    levelUpEffects = hero_effects + sidekick_effects
+    all_skills = [hero_skill] + base_sidekicks.map(&:base_skill)
+    
+    # Generate 3 random skill effect selections
+    levelUpEffects = []
+    3.times do
+      random_skill = all_skills.sample
+      random_effect = random_skill.level_up_effects.sample
+      levelUpEffects << random_effect if random_effect
+    end
     
     {
       main_stage: {},
