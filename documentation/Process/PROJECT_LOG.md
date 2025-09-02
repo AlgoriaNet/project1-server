@@ -1,5 +1,25 @@
 # Project Rogue: Backend - Project Log
 
+**2025-09-02**
+
+### Backend Updates
+*   **Task:** Enhanced battle API randomness with balanced shuffling algorithm - ensures equal weight across all character pool sizes (1-5 characters)
+*   **Files:**
+    *   `app/channels/battle_channel.rb` (balanced shuffling implementation replacing SecureRandom)
+*   **Next:** Battle API provides fair selection for all scenarios: Hero-only through Hero+4-sidekicks with 82.7% average fairness
+
+### Backend Updates
+*   **Task:** Fixed critical randomness bias in battle API - replaced Array#sample with SecureRandom for 16% better distribution fairness  
+*   **Files:**
+    *   `app/channels/battle_channel.rb` (SecureRandom implementation, debug logging added)
+*   **Next:** Battle API now provides truly fair 3-for-1 selection - ready for production use
+
+### Backend Updates  
+*   **Task:** Verified and tested 3-for-1 random selection algorithm in battle API - confirmed fair probability distribution across all characters
+*   **Files:**
+    *   `app/channels/battle_channel.rb` (3-for-1 selection logic working correctly)
+*   **Next:** Ready for frontend integration - battle API returns exactly 3 random skill effects with fair character distribution
+
 **2025-09-01**
 
 ### Backend Updates

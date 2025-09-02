@@ -76,13 +76,35 @@ class BattleChannel < ApplicationCable::Channel
     hero_skill = BaseSkill.find(0)
     all_skills = [hero_skill] + base_sidekicks.map(&:base_skill)
     
-    # Generate 3 random skill effect selections
+    # Generate 3 random skill effect selections using balanced shuffling for fairness
     levelUpEffects = []
-    3.times do
-      random_skill = all_skills.sample
-      random_effect = random_skill.level_up_effects.sample
-      levelUpEffects << random_effect if random_effect
+    selected_skill_ids = []
+    
+    # Create balanced pool: each character appears multiple times for fair distribution
+    balanced_pool = []
+    multiplier = [3, all_skills.length].max  # At least 3 copies of each character
+    all_skills.each do |skill|
+      multiplier.times { balanced_pool << skill }
     end
+    
+    # Shuffle and select first 3 characters
+    balanced_pool.shuffle!
+    3.times do |i|
+      random_skill = balanced_pool[i]
+      
+      # Select random effect from the chosen skill
+      skill_effects = random_skill.level_up_effects.to_a
+      if skill_effects.any?
+        effect_index = SecureRandom.random_number(skill_effects.length)
+        random_effect = skill_effects[effect_index]
+        
+        levelUpEffects << random_effect
+        selected_skill_ids << random_skill.id
+      end
+    end
+    
+    # DEBUG: Log selection patterns to detect bias
+    Rails.logger.info "[BATTLE_SELECTION] Player #{@player_id}: Skills selected [#{selected_skill_ids.join(', ')}] from pool [#{all_skills.map(&:id).join(', ')}]"
     
     {
       main_stage: {},
