@@ -3,6 +3,18 @@
 **2025-09-02**
 
 ### Backend Updates
+*   **Task:** Generated complete 20-level skill effects for all characters (L01-L20) - L01-L02 enhanced versions, L03-L20 placeholder "To be confirmed"
+*   **Files:**
+    *   `BaseSkillLevelUpEffect` database (added ~400 new effect records)
+*   **Next:** Frontend should now display complete 20-level grid instead of duplicate L01 entries
+
+### Backend Updates
+*   **Task:** Fixed get_upgrade_levels API Internal server error - removed double JSON.parse and invalid sidekick_fragment_name filtering
+*   **Files:**
+    *   `app/channels/player_channel.rb` (get_upgrade_levels method lines 718-720)
+*   **Next:** UpgradePanelManager should now receive proper upgrade levels data and display prefabs correctly
+
+### Backend Updates
 *   **Task:** Enhanced battle API randomness with balanced shuffling algorithm - ensures equal weight across all character pool sizes (1-5 characters)
 *   **Files:**
     *   `app/channels/battle_channel.rb` (balanced shuffling implementation replacing SecureRandom)

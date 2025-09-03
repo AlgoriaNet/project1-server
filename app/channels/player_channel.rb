@@ -716,11 +716,7 @@ class PlayerChannel < ApplicationCable::Channel
       player_sidekick = player.sidekicks.find_by(base_id: base_sidekick.id)
       current_level = player_sidekick&.skill_level || 0
       upgrade_levels = BaseSkillLevelUpEffect.where(skill_id: base_sidekick.skill_id)
-        .select { |upgrade| 
-          effects = JSON.parse(upgrade.effects || '{}')
-          effects['sidekick_fragment_name'] == ally_id
-        }
-        .sort_by(&:level)
+        .order(:level)
         .map do |upgrade|
           {
             level: "L#{upgrade.level.to_s.rjust(2, '0')}",
