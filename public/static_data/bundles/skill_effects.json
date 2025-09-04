@@ -1,0 +1,207 @@
+{
+  "bundle_type": "skill_effects",
+  "version": "1.0.0",
+  "generated_at": "2025-09-03T13:22:36Z",
+  "data": {
+    "01_Zorath": {
+      "skill_id": 1,
+      "skill_name": "Skill_FireTornado",
+      "levels": {
+        "1": [
+          {
+            "id": 410,
+            "description": "Increase damage by 20%",
+            "effects": {
+              "ExtraDamageGain": "0.2"
+            }
+          },
+          {
+            "id": 411,
+            "description": "Reduce cooldown by 0.5s",
+            "effects": {
+              "ReduceCd": "0.5"
+            }
+          }
+        ],
+        "2": [
+          {
+            "id": "410_L2",
+            "description": "Increase damage by 25%",
+            "effects": {
+              "ExtraDamageGain": "0.25"
+            }
+          },
+          {
+            "id": "411_L2",
+            "description": "Reduce cooldown by 0.7s",
+            "effects": {
+              "ReduceCd": "0.63"
+            }
+          }
+        ],
+        "3": [
+          {
+            "id": "placeholder_L3",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "4": [
+          {
+            "id": "placeholder_L4",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "5": [
+          {
+            "id": "placeholder_L5",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "6": [
+          {
+            "id": "placeholder_L6",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "7": [
+          {
+            "id": "placeholder_L7",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "8": [
+          {
+            "id": "placeholder_L8",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "9": [
+          {
+            "id": "placeholder_L9",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "10": [
+          {
+            "id": "placeholder_L10",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "11": [
+          {
+            "id": "placeholder_L11",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "12": [
+          {
+            "id": "placeholder_L12",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "13": [
+          {
+            "id": "placeholder_L13",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "14": [
+          {
+            "id": "placeholder_L14",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "15": [
+          {
+            "id": "placeholder_L15",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "16": [
+          {
+            "id": "placeholder_L16",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "17": [
+          {
+            "id": "placeholder_L17",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "18": [
+          {
+            "id": "placeholder_L18",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "19": [
+          {
+            "id": "placeholder_L19",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ],
+        "20": [
+          {
+            "id": "placeholder_L20",
+            "description": "To be confirmed",
+            "effects": {
+              "PlaceholderEffect": "0"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,5 +1,17 @@
 # Project Rogue: Backend - Project Log
 
+**2025-09-03**
+
+### Project Management Updates
+*   **Task:** Created an `IMPORTANT_TODO.md` file to track major, long-term tasks.
+*   **Files:** `documentation/IMPORTANT_TODO.md`
+*   **Next:** The to-do list is now ready to be used for tracking progress on the static data system.
+
+### Backend Updates
+*   **Task:** Documented the proposed universal static data architecture.
+*   **Files:** `documentation/static_data_architecture.md`
+*   **Next:** Proceed with Phase 1 implementation: creating manual JSON files for skill effects.
+
 **2025-09-02**
 
 ### Backend Updates

@@ -715,22 +715,36 @@ class PlayerChannel < ApplicationCable::Channel
       # Find player's sidekick instance (may be nil if not owned)
       player_sidekick = player.sidekicks.find_by(base_id: base_sidekick.id)
       current_level = player_sidekick&.skill_level || 0
-      upgrade_levels = BaseSkillLevelUpEffect.where(skill_id: base_sidekick.skill_id)
-        .order(:level)
-        .map do |upgrade|
-          {
-            level: "L#{upgrade.level.to_s.rjust(2, '0')}",
-            description: upgrade.description,
-            is_unlocked: current_level >= upgrade.level
-          }
-        end
-      render_response "get_upgrade_levels", json, {
-        ally_id: ally_id,
-        name: base_sidekick.name,
-        cn_name: base_sidekick.cn_name,
-        current_level: current_level,
-        upgrade_levels: upgrade_levels
-      }
+      
+      # For 01_Zorath only: Use static data system
+      if ally_id == '01_Zorath'
+        render_response "get_upgrade_levels", json, {
+          ally_id: ally_id,
+          name: base_sidekick.name,
+          cn_name: base_sidekick.cn_name,
+          skill_id: base_sidekick.skill_id,
+          current_level: current_level,
+          use_static_data: true
+        }
+      else
+        # All other sidekicks: Keep using database (original behavior)
+        upgrade_levels = BaseSkillLevelUpEffect.where(skill_id: base_sidekick.skill_id)
+          .order(:level)
+          .map do |upgrade|
+            {
+              level: "L#{upgrade.level.to_s.rjust(2, '0')}",
+              description: upgrade.description,
+              is_unlocked: current_level >= upgrade.level
+            }
+          end
+        render_response "get_upgrade_levels", json, {
+          ally_id: ally_id,
+          name: base_sidekick.name,
+          cn_name: base_sidekick.cn_name,
+          current_level: current_level,
+          upgrade_levels: upgrade_levels
+        }
+      end
     rescue StandardError => e
       Rails.logger.error "Get upgrade levels error: #{e.message}\n#{e.backtrace.join("\n")}" 
       render_error "get_upgrade_levels", json, "Internal server error", 500

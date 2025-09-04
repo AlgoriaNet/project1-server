@@ -16,7 +16,15 @@ Rails.application.routes.draw do
     get "/allies/:ally_id/upgrade_levels", to: "allies#upgrade_levels"
     get "/gem-levels", to: "allies#gem_levels"
     get "/level_up_costs", to: "allies#level_up_costs"
+    
+    # Static Data System
+    get "/static_data/manifest", to: "static_data#manifest"
+    get "/static_data/bundle/:bundle_name", to: "static_data#bundle"
   end
+
+  # Direct file serving for static data (what frontend actually expects)
+  get "/static_data/version.json" => "static_data#version_file"
+  get "/static_data/skill_effects.json" => "static_data#skill_effects_file"
 
   mount ActionCable.server => '/cable'
 end
