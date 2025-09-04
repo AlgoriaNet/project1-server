@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "last_updated": "2025-09-04T07:05:55Z",
+  "version": "1.0.1",
+  "last_updated": "2025-09-04T07:32:33Z",
   "sidekicks": {
     "01_Zorath": {
       "skill_id": 1,
@@ -33,7 +33,7 @@
         "3": [
           {
             "id": "placeholder_L03",
-            "description": "Level 3 effect (to be implemented)",
+            "description": "Dummy Effect",
             "effects": {
               "PlaceholderEffect": "0"
             }

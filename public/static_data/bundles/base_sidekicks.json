@@ -1,0 +1,467 @@
+{
+  "bundle_name": "base_sidekicks",
+  "version": "1.0.0",
+  "generated_at": "2025-09-04T12:33:57Z",
+  "data": {
+    "01_Zorath": {
+      "id": 1,
+      "name": "Zorath",
+      "cn_name": "佐拉斯",
+      "fragment_name": "01_Zorath",
+      "character": "fire",
+      "skill_id": 1,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_01_Zorath",
+        "card_name": "C_01_Zorath",
+        "portrait_icon": "L_01_Zorath",
+        "skill_icon": "Skill_01_Zorath",
+        "skill_book_icon": "SKb_01_Zorath"
+      },
+      "description": null
+    },
+    "02_Gideon": {
+      "id": 2,
+      "name": "Gideon",
+      "cn_name": "吉迪恩",
+      "fragment_name": "02_Gideon",
+      "character": "physical",
+      "skill_id": 2,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_02_Gideon",
+        "card_name": "C_02_Gideon",
+        "portrait_icon": "L_02_Gideon",
+        "skill_icon": "Skill_02_Gideon",
+        "skill_book_icon": "SKb_02_Gideon"
+      },
+      "description": null
+    },
+    "03_Sylas": {
+      "id": 3,
+      "name": "Sylas",
+      "cn_name": "西拉斯",
+      "fragment_name": "03_Sylas",
+      "character": "wind",
+      "skill_id": 3,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_03_Sylas",
+        "card_name": "C_03_Sylas",
+        "portrait_icon": "L_03_Sylas",
+        "skill_icon": "Skill_03_Sylas",
+        "skill_book_icon": "SKb_03_Sylas"
+      },
+      "description": null
+    },
+    "04_Aurelia": {
+      "id": 4,
+      "name": "Aurelia",
+      "cn_name": "奥蕾莉亚",
+      "fragment_name": "04_Aurelia",
+      "character": "wind",
+      "skill_id": 4,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_04_Aurelia",
+        "card_name": "C_04_Aurelia",
+        "portrait_icon": "L_04_Aurelia",
+        "skill_icon": "Skill_04_Aurelia",
+        "skill_book_icon": "SKb_04_Aurelia"
+      },
+      "description": null
+    },
+    "05_Lyanna": {
+      "id": 5,
+      "name": "Lyanna",
+      "cn_name": "莉安娜",
+      "fragment_name": "05_Lyanna",
+      "character": "dark",
+      "skill_id": 5,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_05_Lyanna",
+        "card_name": "C_05_Lyanna",
+        "portrait_icon": "L_05_Lyanna",
+        "skill_icon": "Skill_05_Lyanna",
+        "skill_book_icon": "SKb_05_Lyanna"
+      },
+      "description": null
+    },
+    "06_Zhara": {
+      "id": 6,
+      "name": "Zhara",
+      "cn_name": "扎拉",
+      "fragment_name": "06_Zhara",
+      "character": "dark",
+      "skill_id": 6,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_06_Zhara",
+        "card_name": "C_06_Zhara",
+        "portrait_icon": "L_06_Zhara",
+        "skill_icon": "Skill_06_Zhara",
+        "skill_book_icon": "SKb_06_Zhara"
+      },
+      "description": null
+    },
+    "07_Elenya": {
+      "id": 7,
+      "name": "Elenya",
+      "cn_name": "埃琳雅",
+      "fragment_name": "07_Elenya",
+      "character": "light",
+      "skill_id": 7,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_07_Elenya",
+        "card_name": "C_07_Elenya",
+        "portrait_icon": "L_07_Elenya",
+        "skill_icon": "Skill_07_Elenya",
+        "skill_book_icon": "SKb_07_Elenya"
+      },
+      "description": null
+    },
+    "08_Rowan": {
+      "id": 8,
+      "name": "Rowan",
+      "cn_name": "罗恩",
+      "fragment_name": "08_Rowan",
+      "character": "physical",
+      "skill_id": 8,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_08_Rowan",
+        "card_name": "C_08_Rowan",
+        "portrait_icon": "L_08_Rowan",
+        "skill_icon": "Skill_08_Rowan",
+        "skill_book_icon": "SKb_08_Rowan"
+      },
+      "description": null
+    },
+    "09_Liraen": {
+      "id": 9,
+      "name": "Liraen",
+      "cn_name": "莉瑞安",
+      "fragment_name": "09_Liraen",
+      "character": "ice",
+      "skill_id": 9,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_09_Liraen",
+        "card_name": "C_09_Liraen",
+        "portrait_icon": "L_09_Liraen",
+        "skill_icon": "Skill_09_Liraen",
+        "skill_book_icon": "SKb_09_Liraen"
+      },
+      "description": null
+    },
+    "10_Cedric": {
+      "id": 10,
+      "name": "Cedric",
+      "cn_name": "塞德里克",
+      "fragment_name": "10_Cedric",
+      "character": "fire",
+      "skill_id": 10,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_10_Cedric",
+        "card_name": "C_10_Cedric",
+        "portrait_icon": "L_10_Cedric",
+        "skill_icon": "Skill_10_Cedric",
+        "skill_book_icon": "SKb_10_Cedric"
+      },
+      "description": null
+    },
+    "11_Selena": {
+      "id": 11,
+      "name": "Selena",
+      "cn_name": "塞琳娜",
+      "fragment_name": "11_Selena",
+      "character": "light",
+      "skill_id": 11,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_11_Selena",
+        "card_name": "C_11_Selena",
+        "portrait_icon": "L_11_Selena",
+        "skill_icon": "Skill_11_Selena",
+        "skill_book_icon": "SKb_11_Selena"
+      },
+      "description": null
+    },
+    "12_Morgath": {
+      "id": 12,
+      "name": "Morgath",
+      "cn_name": "莫加斯",
+      "fragment_name": "12_Morgath",
+      "character": "ice",
+      "skill_id": 12,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_12_Morgath",
+        "card_name": "C_12_Morgath",
+        "portrait_icon": "L_12_Morgath",
+        "skill_icon": "Skill_12_Morgath",
+        "skill_book_icon": "SKb_12_Morgath"
+      },
+      "description": null
+    },
+    "13_Zyphira": {
+      "id": 13,
+      "name": "Zyphira",
+      "cn_name": "齐菲拉",
+      "fragment_name": "13_Zyphira",
+      "character": "fire",
+      "skill_id": 13,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_13_Zyphira",
+        "card_name": "C_13_Zyphira",
+        "portrait_icon": "L_13_Zyphira",
+        "skill_icon": "Skill_13_Zyphira",
+        "skill_book_icon": "SKb_13_Zyphira"
+      },
+      "description": null
+    },
+    "14_Kaelith": {
+      "id": 14,
+      "name": "Kaelith",
+      "cn_name": "凯利斯",
+      "fragment_name": "14_Kaelith",
+      "character": "light",
+      "skill_id": 14,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_14_Kaelith",
+        "card_name": "C_14_Kaelith",
+        "portrait_icon": "L_14_Kaelith",
+        "skill_icon": "Skill_14_Kaelith",
+        "skill_book_icon": "SKb_14_Kaelith"
+      },
+      "description": null
+    },
+    "15_Velan": {
+      "id": 15,
+      "name": "Velan",
+      "cn_name": "维兰",
+      "fragment_name": "15_Velan",
+      "character": "physical",
+      "skill_id": 15,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_15_Velan",
+        "card_name": "C_15_Velan",
+        "portrait_icon": "L_15_Velan",
+        "skill_icon": "Skill_15_Velan",
+        "skill_book_icon": "SKb_15_Velan"
+      },
+      "description": null
+    },
+    "16_Ragnar": {
+      "id": 16,
+      "name": "Ragnar",
+      "cn_name": "拉格纳",
+      "fragment_name": "16_Ragnar",
+      "character": "ice",
+      "skill_id": 16,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_16_Ragnar",
+        "card_name": "C_16_Ragnar",
+        "portrait_icon": "L_16_Ragnar",
+        "skill_icon": "Skill_16_Ragnar",
+        "skill_book_icon": "SKb_16_Ragnar"
+      },
+      "description": null
+    },
+    "17_Lucien": {
+      "id": 17,
+      "name": "Lucien",
+      "cn_name": "卢西恩",
+      "fragment_name": "17_Lucien",
+      "character": "fire",
+      "skill_id": 17,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_17_Lucien",
+        "card_name": "C_17_Lucien",
+        "portrait_icon": "L_17_Lucien",
+        "skill_icon": "Skill_17_Lucien",
+        "skill_book_icon": "SKb_17_Lucien"
+      },
+      "description": null
+    },
+    "18_Ugra": {
+      "id": 18,
+      "name": "Ugra",
+      "cn_name": "乌格拉",
+      "fragment_name": "18_Ugra",
+      "character": "wind",
+      "skill_id": 18,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_18_Ugra",
+        "card_name": "C_18_Ugra",
+        "portrait_icon": "L_18_Ugra",
+        "skill_icon": "Skill_18_Ugra",
+        "skill_book_icon": "SKb_18_Ugra"
+      },
+      "description": null
+    },
+    "19_Eleanor": {
+      "id": 19,
+      "name": "Eleanor",
+      "cn_name": "艾莉诺",
+      "fragment_name": "19_Eleanor",
+      "character": "ice",
+      "skill_id": 19,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_19_Eleanor",
+        "card_name": "C_19_Eleanor",
+        "portrait_icon": "L_19_Eleanor",
+        "skill_icon": "Skill_19_Eleanor",
+        "skill_book_icon": "SKb_19_Eleanor"
+      },
+      "description": null
+    },
+    "20_Nyx": {
+      "id": 20,
+      "name": "Nyx",
+      "cn_name": "尼克丝",
+      "fragment_name": "20_Nyx",
+      "character": "wind",
+      "skill_id": 20,
+      "base_stats": {
+        "atk": 30,
+        "def": 10,
+        "cri": 20,
+        "crt": 150,
+        "variety_damage": 0.2
+      },
+      "icons": {
+        "drawing_icon": "P_20_Nyx",
+        "card_name": "C_20_Nyx",
+        "portrait_icon": "L_20_Nyx",
+        "skill_icon": "Skill_20_Nyx",
+        "skill_book_icon": "SKb_20_Nyx"
+      },
+      "description": null
+    }
+  }
+}

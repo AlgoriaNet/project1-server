@@ -26,4 +26,16 @@ class StaticDataController < ApplicationController
       render json: { error: "Skill effects file not found" }, status: 404
     end
   end
+
+  # GET /static_data/base_sidekicks.json
+  def base_sidekicks_file
+    base_sidekicks_path = Rails.root.join('public', 'static_data', 'base_sidekicks.json')
+    
+    if File.exist?(base_sidekicks_path)
+      base_sidekicks_data = JSON.parse(File.read(base_sidekicks_path))
+      render json: base_sidekicks_data
+    else
+      render json: { error: "Base sidekicks file not found" }, status: 404
+    end
+  end
 end

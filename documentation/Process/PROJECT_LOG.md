@@ -1,5 +1,16 @@
 # Project Rogue: Backend - Project Log
 
+**2025-09-04**
+
+### Backend Updates
+*   **Task:** Implemented universal static data system with hot-fix deployment and version control - all 20 sidekicks migrated from database to file-based skill effects
+*   **Files:** 
+    *   `public/static_data/skill_effects.json` (all 20 sidekicks L01-L20)
+    *   `app/controllers/static_data_controller.rb` (new endpoints)
+    *   `app/channels/player_channel.rb` (WebSocket API updated)
+    *   `config/routes.rb` (static data routes)
+*   **Next:** System proven with successful hot-fix test (01_Zorath L03 → "Dummy Effect", version 1.0.0→1.0.1). Ready for expansion to other static data types (items, characters, costs).
+
 **2025-09-03**
 
 ### Project Management Updates
