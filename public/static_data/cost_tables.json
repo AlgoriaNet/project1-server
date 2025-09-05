@@ -1,0 +1,131 @@
+{
+  "bundle_name": "cost_tables",
+  "version": "1.0.0",
+  "generated_at": "2025-09-04T13:20:24Z",
+  "data": {
+    "level_up_costs": {
+      "1": {
+        "level": 1,
+        "skillbook_cost": 20,
+        "gold_cost": 1000
+      },
+      "2": {
+        "level": 2,
+        "skillbook_cost": 25,
+        "gold_cost": 2000
+      },
+      "3": {
+        "level": 3,
+        "skillbook_cost": 30,
+        "gold_cost": 3000
+      },
+      "4": {
+        "level": 4,
+        "skillbook_cost": 35,
+        "gold_cost": 4000
+      },
+      "5": {
+        "level": 5,
+        "skillbook_cost": 40,
+        "gold_cost": 5000
+      },
+      "6": {
+        "level": 6,
+        "skillbook_cost": 45,
+        "gold_cost": 6000
+      },
+      "7": {
+        "level": 7,
+        "skillbook_cost": 50,
+        "gold_cost": 7000
+      },
+      "8": {
+        "level": 8,
+        "skillbook_cost": 55,
+        "gold_cost": 8000
+      },
+      "9": {
+        "level": 9,
+        "skillbook_cost": 60,
+        "gold_cost": 9000
+      },
+      "10": {
+        "level": 10,
+        "skillbook_cost": 65,
+        "gold_cost": 10000
+      },
+      "11": {
+        "level": 11,
+        "skillbook_cost": 70,
+        "gold_cost": 11000
+      },
+      "12": {
+        "level": 12,
+        "skillbook_cost": 75,
+        "gold_cost": 12000
+      },
+      "13": {
+        "level": 13,
+        "skillbook_cost": 80,
+        "gold_cost": 13000
+      },
+      "14": {
+        "level": 14,
+        "skillbook_cost": 85,
+        "gold_cost": 14000
+      },
+      "15": {
+        "level": 15,
+        "skillbook_cost": 90,
+        "gold_cost": 15000
+      },
+      "16": {
+        "level": 16,
+        "skillbook_cost": 95,
+        "gold_cost": 16000
+      },
+      "17": {
+        "level": 17,
+        "skillbook_cost": 100,
+        "gold_cost": 17000
+      },
+      "18": {
+        "level": 18,
+        "skillbook_cost": 105,
+        "gold_cost": 18000
+      },
+      "19": {
+        "level": 19,
+        "skillbook_cost": 110,
+        "gold_cost": 19000
+      }
+    },
+    "star_upgrade_costs": {
+      "0": {
+        "star": 0,
+        "shard_cost": 10,
+        "gold_cost": 1000
+      },
+      "1": {
+        "star": 1,
+        "shard_cost": 30,
+        "gold_cost": 3000
+      },
+      "2": {
+        "star": 2,
+        "shard_cost": 50,
+        "gold_cost": 5000
+      },
+      "3": {
+        "star": 3,
+        "shard_cost": 80,
+        "gold_cost": 8000
+      },
+      "4": {
+        "star": 4,
+        "shard_cost": 120,
+        "gold_cost": 10000
+      }
+    }
+  }
+}

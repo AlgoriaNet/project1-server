@@ -1,5 +1,12 @@
 # Project Rogue: Backend - Project Log
 
+**2025-09-05**
+
+### Documentation Updates
+*   **Task:** Created a new guide to clarify the `Sidekick` vs. `Ally` naming inconsistency.
+*   **Files:** `documentation/SIDEKICK_ALLY_NAMING_GUIDE.md`
+*   **Next:** All developers should refer to this guide to understand the legacy naming convention and prepare for an eventual API refactoring.
+
 **2025-09-04**
 
 ### Backend Updates

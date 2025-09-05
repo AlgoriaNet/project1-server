@@ -72,44 +72,13 @@ class BattleChannel < ApplicationCable::Channel
     deployed_sidekicks = player.sidekicks.where(is_deployed: true).includes(:base_sidekick)
     base_sidekicks = deployed_sidekicks.map(&:base_sidekick)
     
-    # Create character pool: Hero + deployed sidekicks
-    hero_skill = BaseSkill.find(0)
-    all_skills = [hero_skill] + base_sidekicks.map(&:base_skill)
-    
-    # Generate 3 random skill effect selections using balanced shuffling for fairness
-    levelUpEffects = []
-    selected_skill_ids = []
-    
-    # Create balanced pool: each character appears multiple times for fair distribution
-    balanced_pool = []
-    multiplier = [3, all_skills.length].max  # At least 3 copies of each character
-    all_skills.each do |skill|
-      multiplier.times { balanced_pool << skill }
-    end
-    
-    # Shuffle and select first 3 characters
-    balanced_pool.shuffle!
-    3.times do |i|
-      random_skill = balanced_pool[i]
-      
-      # Select random effect from the chosen skill
-      skill_effects = random_skill.level_up_effects.to_a
-      if skill_effects.any?
-        effect_index = SecureRandom.random_number(skill_effects.length)
-        random_effect = skill_effects[effect_index]
-        
-        levelUpEffects << random_effect
-        selected_skill_ids << random_skill.id
-      end
-    end
-    
-    # DEBUG: Log selection patterns to detect bias
-    Rails.logger.info "[BATTLE_SELECTION] Player #{@player_id}: Skills selected [#{selected_skill_ids.join(', ')}] from pool [#{all_skills.map(&:id).join(', ')}]"
+    # Frontend now uses StaticSkillEffectsCache instead of levelUpEffects
+    # Removed complex random selection logic per frontend notification (2025-09-05)
     
     {
       main_stage: {},
-      sidekicks: base_sidekicks.map(&:as_ws_json),
-      levelUpEffects: levelUpEffects.map(&:as_ws_json)
+      sidekicks: base_sidekicks.map(&:as_ws_json)
+      # levelUpEffects removed - frontend uses StaticSkillEffectsCache
     }
   end
 
