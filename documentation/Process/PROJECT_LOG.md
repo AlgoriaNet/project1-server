@@ -2,6 +2,11 @@
 
 **2025-09-05**
 
+### Backend Updates
+*   **Task:** Removed unused levelUpEffects from battle start API - eliminated 34 lines of complex random selection logic per frontend notification
+*   **Files:** `app/channels/battle_channel.rb` (build_battle_data method simplified)
+*   **Next:** Battle API now returns only essential data (sidekicks array), improving performance and reducing payload size
+
 ### Documentation Updates
 *   **Task:** Created a new guide to clarify the `Sidekick` vs. `Ally` naming inconsistency.
 *   **Files:** `documentation/SIDEKICK_ALLY_NAMING_GUIDE.md`

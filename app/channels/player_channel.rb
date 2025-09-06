@@ -730,4 +730,20 @@ class PlayerChannel < ApplicationCable::Channel
       render_error "get_upgrade_levels", json, "Internal server error", 500
     end
   end
+
+  def get_level_up_effects(json)
+    Rails.logger.info "[WS get_level_up_effects] Fetching all skill level up effects from database"
+    begin
+      # Return all skill level up effects with executable effects JSON
+      effects = BaseSkillLevelUpEffect.includes(:base_skill).all.map(&:as_ws_json)
+      
+      render_response "get_level_up_effects", json, {
+        effects: effects,
+        total_count: effects.length
+      }
+    rescue StandardError => e
+      Rails.logger.error "Get level up effects error: #{e.message}\n#{e.backtrace.join("\n")}" 
+      render_error "get_level_up_effects", json, "Internal server error", 500
+    end
+  end
 end
