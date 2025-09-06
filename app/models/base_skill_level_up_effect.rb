@@ -10,6 +10,20 @@ class BaseSkillLevelUpEffect < ApplicationRecord
     json.delete("skill_id")
     json["skill_name"] = base_skill.name
     
+    # Add ally identification for frontend
+    sidekick = BaseSidekick.find_by(skill_id: base_skill.id)
+    if sidekick
+      # This is a sidekick effect
+      json["ally_id"] = sidekick.fragment_name
+      json["ally_name"] = sidekick.name
+      json["effect_key"] = "#{sidekick.fragment_name}_L#{level.to_s.rjust(2, '0')}"
+    else
+      # This is hero effect (skill_id = 0)
+      json["ally_id"] = "hero"
+      json["ally_name"] = "Hero"
+      json["effect_key"] = "hero_L#{level.to_s.rjust(2, '0')}"
+    end
+    
     # Parse Effects JSON string back to hash for Unity compatibility
     if json["effects"].is_a?(String)
       json["effects"] = JSON.parse(json["effects"]) rescue json["effects"]

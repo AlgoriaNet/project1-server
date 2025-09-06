@@ -1,5 +1,14 @@
 # Project Rogue: Backend - Project Log
 
+**2025-09-06**
+
+### Backend Updates
+*   **Task:** Restored complete levelUpEffects API and generated full 20-level skill progression for all sidekicks - replaced static file system with database-driven effects 
+*   **Files:**
+    *   `app/channels/player_channel.rb` (new get_level_up_effects endpoint)
+    *   `BaseSkillLevelUpEffect` database (401 total effects: 20 sidekicks × 20 levels + 1 hero)
+*   **Next:** Frontend should migrate from static skill_effects.json to WebSocket API, implement effect-to-description templates, and remove caching mechanisms
+
 **2025-09-05**
 
 ### Backend Updates

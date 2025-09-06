@@ -734,13 +734,26 @@ class PlayerChannel < ApplicationCable::Channel
   def get_level_up_effects(json)
     Rails.logger.info "[WS get_level_up_effects] Fetching all skill level up effects from database"
     begin
-      # Return all skill level up effects with executable effects JSON
-      effects = BaseSkillLevelUpEffect.includes(:base_skill).all.map(&:as_ws_json)
+      # Build clean key-based structure: "01_Zorath_L05" => {"effects": {...}}
+      effects_hash = {}
       
-      render_response "get_level_up_effects", json, {
-        effects: effects,
-        total_count: effects.length
-      }
+      BaseSkillLevelUpEffect.includes(:base_skill).all.each do |effect|
+        # Generate effect key
+        sidekick = BaseSidekick.find_by(skill_id: effect.base_skill.id)
+        if sidekick
+          effect_key = "#{sidekick.fragment_name}_L#{effect.level.to_s.rjust(2, '0')}"
+        else
+          # Hero effect
+          effect_key = "hero_L#{effect.level.to_s.rjust(2, '0')}"
+        end
+        
+        # Store only essential data
+        effects_hash[effect_key] = {
+          effects: effect.effects
+        }
+      end
+      
+      render_response "get_level_up_effects", json, effects_hash
     rescue StandardError => e
       Rails.logger.error "Get level up effects error: #{e.message}\n#{e.backtrace.join("\n")}" 
       render_error "get_level_up_effects", json, "Internal server error", 500
