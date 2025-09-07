@@ -1,13 +1,26 @@
 # Project Rogue: Backend - Project Log
 
+**2025-09-07**
+
+### Backend Updates
+*   **Task:** Cleaned up skill effects static file cache remnants - removed all old caching method code while preserving other static data systems
+*   **Files:**
+    *   `config/routes.rb` (removed skill_effects.json route)
+    *   `app/controllers/static_data_controller.rb` (removed skill_effects_file method and auth exception)
+    *   `public/static_data/skill_effects.json` (deleted physical file)
+    *   `public/static_data/bundles/skill_effects.json` (deleted bundled file)
+    *   `public/static_data/manifest.json` (removed skill_effects bundle reference)
+*   **Next:** Migration to WebSocket API complete - skill effects now served via get_level_up_effects endpoint only. Static file caching approach fully removed, other caching systems (version, base_sidekicks) preserved.
+
 **2025-09-06**
 
 ### Backend Updates
-*   **Task:** Restored complete levelUpEffects API and generated full 20-level skill progression for all sidekicks - replaced static file system with database-driven effects 
+*   **Task:** Implemented clean levelUpEffects API with professional key-based structure - fixed dual L01 issue and generated complete 20-level progression with optimized response format
 *   **Files:**
-    *   `app/channels/player_channel.rb` (new get_level_up_effects endpoint)
+    *   `app/channels/player_channel.rb` (get_level_up_effects endpoint with clean key-based response)
     *   `BaseSkillLevelUpEffect` database (401 total effects: 20 sidekicks × 20 levels + 1 hero)
-*   **Next:** Frontend should migrate from static skill_effects.json to WebSocket API, implement effect-to-description templates, and remove caching mechanisms
+    *   Fixed data structure: converted duplicate L01 effects to proper L01+L02 progression
+*   **Next:** Frontend should migrate to WebSocket API using key-based lookup (e.g., response["01_Zorath_L05"].effects), implement effect-to-description templates, and remove static file caching. API response is 78% smaller (18.5KB vs 83KB) with zero redundancy.
 
 **2025-09-05**
 

@@ -24,7 +24,6 @@ Rails.application.routes.draw do
 
   # Direct file serving for static data (what frontend actually expects)
   get "/static_data/version.json" => "static_data#version_file"
-  get "/static_data/skill_effects.json" => "static_data#skill_effects_file"
   get "/static_data/base_sidekicks.json" => "static_data#base_sidekicks_file"
 
   mount ActionCable.server => '/cable'

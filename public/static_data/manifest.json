@@ -2,12 +2,5 @@
   "version": "1.0.0",
   "last_updated": "2025-09-03T12:00:00Z",
   "bundles": {
-    "skill_effects": {
-      "version": "1.0.0",
-      "url": "/static_data/bundles/skill_effects.json",
-      "size": 4007,
-      "checksum": "sha256:abc123...",
-      "description": "Skill effect descriptions and progression data"
-    }
   }
 }

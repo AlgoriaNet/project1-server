@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class StaticDataController < ApplicationController
-  before_action :authenticate_user, except: [:version_file, :skill_effects_file]
+  before_action :authenticate_user, except: [:version_file]
 
   # GET /static_data/version.json
   def version_file
@@ -15,17 +15,6 @@ class StaticDataController < ApplicationController
     end
   end
 
-  # GET /static_data/skill_effects.json  
-  def skill_effects_file
-    skill_effects_path = Rails.root.join('public', 'static_data', 'skill_effects.json')
-    
-    if File.exist?(skill_effects_path)
-      skill_effects_data = JSON.parse(File.read(skill_effects_path))
-      render json: skill_effects_data
-    else
-      render json: { error: "Skill effects file not found" }, status: 404
-    end
-  end
 
   # GET /static_data/base_sidekicks.json
   def base_sidekicks_file
