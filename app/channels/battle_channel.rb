@@ -65,6 +65,37 @@ class BattleChannel < ApplicationCable::Channel
     end
   end
 
+  # NEW: Battle configuration API to replace hardcoded frontend JSON
+  def get_battle_config(json)
+    begin
+      _json = JSON.parse(json['json'])
+      player_level = _json['player_level'] || player.level || 1
+      battle_type = _json['battle_type'] || 'normal' # normal, boss, survival
+      
+      # Get appropriate monsters for player level  
+      available_monsters = Monster.for_player_level(player_level)
+      
+      if available_monsters.empty?
+        # Fallback to level 1 monsters if none found
+        available_monsters = Monster.where(level: 1)
+      end
+      
+      # Create balanced battle configuration (NOT 20,000 monsters!)
+      battle_config = generate_battle_waves(available_monsters, player_level, battle_type)
+      
+      render_response "get_battle_config", json, {
+        battle_config: battle_config,
+        available_monsters: available_monsters.map(&:as_battle_json),
+        player_level: player_level,
+        estimated_duration: "2-3 minutes"
+      }
+      
+    rescue StandardError => e
+      Rails.logger.error "Get battle config error: #{e.message}\n#{e.backtrace.join("\n")}"
+      render_error "get_battle_config", json, "Failed to generate battle config: #{e.message}", 500
+    end
+  end
+
   def build_battle_data
     # CRITICAL: Reload player to ensure fresh deployment data from other channel updates
     player.reload
@@ -83,6 +114,99 @@ class BattleChannel < ApplicationCable::Channel
   end
 
   private
+
+  # Generate balanced battle waves (replaces hardcoded 20,000 monsters!)
+  def generate_battle_waves(available_monsters, player_level, battle_type)
+    case battle_type
+    when 'normal'
+      # Easy battle: 3 waves, 2-3 monsters per wave, winnable in 2-3 minutes
+      waves = []
+      
+      # Wave 1: 2 weak monsters
+      wave1_monsters = available_monsters.sample(2)
+      waves << {
+        wave: 1,
+        monsters: wave1_monsters.map { |m| { 
+          name: m.name, 
+          count: 1, 
+          hp: m.hp, 
+          atk: m.atk,
+          spawn_delay: 2.0  # 2 seconds between spawns
+        }},
+        total_monsters: 2
+      }
+      
+      # Wave 2: 3 mixed monsters  
+      wave2_monsters = available_monsters.sample(2) # 2 types
+      waves << {
+        wave: 2, 
+        monsters: wave2_monsters.map { |m| {
+          name: m.name,
+          count: m.name == 'Goblin' ? 2 : 1,  # More goblins since they're weak
+          hp: m.hp,
+          atk: m.atk,
+          spawn_delay: 1.5
+        }},
+        total_monsters: 3
+      }
+      
+      # Wave 3: Final wave - slightly tougher
+      wave3_monsters = available_monsters.where(level: [player_level, player_level + 1].max)
+      if wave3_monsters.empty?
+        wave3_monsters = available_monsters
+      end
+      
+      waves << {
+        wave: 3,
+        monsters: wave3_monsters.sample(1).map { |m| {
+          name: m.name,
+          count: 2,
+          hp: (m.hp * 1.2).to_i,  # 20% more HP for final wave
+          atk: m.atk,
+          spawn_delay: 1.0
+        }},
+        total_monsters: 2  
+      }
+      
+      {
+        total_waves: 3,
+        total_monsters: waves.sum { |w| w[:total_monsters] }, # 7 total monsters
+        waves: waves,
+        difficulty: 'normal',
+        estimated_time: '2-3 minutes'
+      }
+      
+    when 'boss'
+      # Boss battle: 1 tough monster + minions
+      {
+        total_waves: 1,
+        total_monsters: 3,
+        waves: [{
+          wave: 1,
+          monsters: [{
+            name: 'Boss_Orc',
+            count: 1,  
+            hp: 150,
+            atk: 20,
+            spawn_delay: 0
+          }, {
+            name: 'Goblin',
+            count: 2,
+            hp: 30,
+            atk: 8, 
+            spawn_delay: 1.0
+          }],
+          total_monsters: 3
+        }],
+        difficulty: 'boss',
+        estimated_time: '3-5 minutes'
+      }
+      
+    else
+      # Default to normal battle
+      generate_battle_waves(available_monsters, player_level, 'normal')
+    end
+  end
 
   # Battle reward constants
   VICTORY_BASE_REWARDS = {

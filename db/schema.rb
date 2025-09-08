@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_05_053627) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_08_033513) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -186,6 +186,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_053627) do
     t.json "lose_reward"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "monsters_config"
+    t.integer "stage_number"
   end
 
   create_table "monsters", charset: "utf8", force: :cascade do |t|
@@ -195,6 +197,21 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_053627) do
     t.json "character"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "level"
+    t.integer "hp"
+    t.integer "atk"
+    t.float "speed"
+    t.json "abilities"
+    t.json "rewards"
+    t.string "size"
+    t.string "elemental_weakness"
+    t.float "movement_speed_multiplier", default: 1.0
+    t.float "attack_range", default: 1.0
+    t.json "special_abilities"
+    t.json "habitat_levels"
+    t.json "spawn_probability"
+    t.boolean "is_boss", default: false
+    t.boolean "is_elite", default: false
   end
 
   create_table "orders", charset: "utf8", force: :cascade do |t|
@@ -232,6 +249,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_05_053627) do
     t.json "items_json"
     t.json "draw_times", comment: "抽奖次数记录,包括保底记录等，JSON格式"
     t.json "summoned_allies"
+    t.text "deployed_base_ids"
     t.index ["device_id"], name: "index_players_on_device_id", unique: true
   end
 
