@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_08_033513) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_08_093555) do
   create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -250,6 +250,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_08_033513) do
     t.json "draw_times", comment: "抽奖次数记录,包括保底记录等，JSON格式"
     t.json "summoned_allies"
     t.text "deployed_base_ids"
+    t.integer "current_stage", default: 1
     t.index ["device_id"], name: "index_players_on_device_id", unique: true
   end
 

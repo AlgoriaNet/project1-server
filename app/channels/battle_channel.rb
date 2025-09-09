@@ -40,6 +40,8 @@ class BattleChannel < ApplicationCable::Channel
       _json = JSON.parse(json['json'])  # Parse nested JSON like other channels
       victory = _json['victory'] # true for victory, false for defeat
       battle_data = _json['battle_data'] || {}
+      completed_stage = _json['stage_number'] || player.current_stage || 1
+      completed_level = _json['level'] || 20  # Default to max level if not specified
       
       # Determine base rewards based on battle result
       base_rewards = victory ? VICTORY_BASE_REWARDS : DEFEAT_BASE_REWARDS
@@ -47,15 +49,25 @@ class BattleChannel < ApplicationCable::Channel
       # Generate complete rewards
       rewards = calculate_battle_rewards(base_rewards)
       
-      # Apply rewards to player (save immediately)
+      # Apply rewards and handle stage progression
       ApplicationRecord.transaction do
         apply_rewards_to_player(rewards)
+        
+        # Handle stage progression on victory
+        if victory
+          handle_stage_progression(completed_stage, completed_level)
+        end
       end
       
-      # Return complete battle result with rewards
+      # Return complete battle result with rewards and updated stage
       render_response "battle_complete", json, {
         victory: victory,
         rewards: format_rewards_for_frontend(rewards),
+        stage_progression: {
+          completed_stage: completed_stage,
+          completed_level: completed_level,
+          new_current_stage: player.current_stage
+        },
         updated_player: player.reload.as_ws_json
       }
       
@@ -375,5 +387,18 @@ class BattleChannel < ApplicationCable::Channel
       equipment: rewards[:equipment].map(&:as_ws_json),
       gemstones: rewards[:gemstones].map(&:as_ws_json)
     }
+  end
+
+
+  def handle_stage_progression(completed_stage, completed_level)
+    # Only advance if player completed the stage they're currently on
+    # and completed the final level (20) of that stage
+    if completed_stage == player.current_stage && completed_level == 20
+      # Advance to next stage (max 100)
+      if player.current_stage < 100
+        player.current_stage += 1
+        player.save!
+      end
+    end
   end
 end
