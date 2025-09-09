@@ -7,7 +7,6 @@ class Player < ApplicationRecord
   has_many :gemstones
   has_many :battle_formations
 
-  validates :current_stage, presence: true, numericality: { in: 1..100 }
 
   before_create :init_by_before_create
   after_create :init_by_after_create
