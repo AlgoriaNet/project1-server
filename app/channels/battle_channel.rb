@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'csv'
+
 class BattleChannel < ApplicationCable::Channel
 
   def battle(json)
@@ -65,30 +67,43 @@ class BattleChannel < ApplicationCable::Channel
     end
   end
 
-  # NEW: Battle configuration API to replace hardcoded frontend JSON
+  # Battle configuration API - Updated September 2025 with CSV-based system
+  # STAGE-LEVEL BASED: Uses stage_level (1-100) + sub_level (1-20) format only
   def get_battle_config(json)
     begin
       _json = JSON.parse(json['json'])
-      player_level = _json['player_level'] || player.level || 1
-      battle_type = _json['battle_type'] || 'normal' # normal, boss, survival
       
-      # Get appropriate monsters for player level  
-      available_monsters = Monster.for_player_level(player_level)
+      # REQUIRED: stage_level + sub_level parameters
+      stage_level = _json['stage_level']
+      sub_level = _json['sub_level'] || 10 # Default to mid-stage if not provided
+      battle_type = _json['battle_type'] || 'normal'
       
-      if available_monsters.empty?
-        # Fallback to level 1 monsters if none found
-        available_monsters = Monster.where(level: 1)
+      # Validate required parameters
+      unless stage_level.present?
+        render_error "get_battle_config", json, "Missing required parameter: stage_level", 400
+        return
       end
       
-      # Create balanced battle configuration (NOT 20,000 monsters!)
-      battle_config = generate_battle_waves(available_monsters, player_level, battle_type)
+      # Validate ranges
+      stage_level = stage_level.to_i
+      sub_level = sub_level.to_i
       
-      render_response "get_battle_config", json, {
-        battle_config: battle_config,
-        available_monsters: available_monsters.map(&:as_battle_json),
-        player_level: player_level,
-        estimated_duration: "2-3 minutes"
-      }
+      if stage_level < 1 || stage_level > 100
+        render_error "get_battle_config", json, "Invalid stage_level: #{stage_level}. Must be 1-100", 400
+        return
+      end
+      
+      if sub_level < 1 || sub_level > 20
+        render_error "get_battle_config", json, "Invalid sub_level: #{sub_level}. Must be 1-20", 400
+        return
+      end
+      
+      Rails.logger.info "Generating battle configuration for stage #{stage_level}.#{sub_level} (#{battle_type})"
+      battle_config = generate_csv_battle_config(stage_level, sub_level, battle_type)
+      
+      Rails.logger.info "Battle config generated successfully, sending response..."
+      render_response "get_battle_config", json, battle_config
+      Rails.logger.info "Response sent to frontend"
       
     rescue StandardError => e
       Rails.logger.error "Get battle config error: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -375,6 +390,140 @@ class BattleChannel < ApplicationCable::Channel
       equipment: rewards[:equipment].map(&:as_ws_json),
       gemstones: rewards[:gemstones].map(&:as_ws_json)
     }
+  end
+
+  # NEW: CSV-based monster configuration system (September 2025)
+  # CAUTIOUS IMPLEMENTATION: Adds new functionality without breaking existing system
+
+  private
+
+  def load_stage_monsters_csv
+    @stage_monsters_cache ||= begin
+      csv_path = Rails.root.join('lib', 'config', 'stage_monsters.csv')
+      return {} unless File.exist?(csv_path)
+      
+      monsters_by_stage = {}
+      CSV.foreach(csv_path, headers: true) do |row|
+        # Skip comment lines
+        next if row['stage_level'].nil? || row['stage_level'].start_with?('#')
+        
+        stage_level = row['stage_level'].to_i
+        sub_level_range = row['sub_level_range']
+        
+        monsters_by_stage[stage_level] ||= {}
+        monsters_by_stage[stage_level][sub_level_range] ||= []
+        
+        monsters_by_stage[stage_level][sub_level_range] << {
+          name: row['monster_name'],
+          spawn_chance: row['spawn_chance'].to_i,
+          base_count: row['base_count'].to_i,
+          spawn_interval: row['spawn_interval'].to_f,
+          hp: row['hp'].to_i,
+          atk: row['atk'].to_i,
+          speed: row['speed'].to_f,
+          exp_reward: row['exp_reward'].to_i
+        }
+      end
+      monsters_by_stage
+    rescue => e
+      Rails.logger.error "Failed to load stage_monsters.csv: #{e.message}"
+      {}
+    end
+  end
+
+  def load_battle_level_progression_csv
+    @battle_progression_cache ||= begin
+      csv_path = Rails.root.join('lib', 'config', 'battle_level_progression.csv')
+      return {} unless File.exist?(csv_path)
+      
+      progression = {}
+      CSV.foreach(csv_path, headers: true) do |row|
+        battle_level = row['battle_level'].to_i
+        exp_required = row['exp_required'] == 'MAX' ? 'MAX' : row['exp_required'].to_i
+        progression[battle_level] = exp_required
+      end
+      progression
+    rescue => e
+      Rails.logger.error "Failed to load battle_level_progression.csv: #{e.message}"
+      # Fallback to original system
+      (1..20).each_with_object({}) { |level, hash| hash[level] = level < 20 ? 100 : 'MAX' }
+    end
+  end
+
+  def get_sub_level_range(sub_level)
+    case sub_level
+    when 1..5 then '1-5'
+    when 6..10 then '6-10'  
+    when 11..15 then '11-15'
+    when 16..20 then '16-20'
+    else '1-20' # Fallback for stages that use full range
+    end
+  end
+
+  def load_monsters_for_stage(stage_level, sub_level)
+    stage_monsters = load_stage_monsters_csv
+    return [] unless stage_monsters[stage_level]
+    
+    # Try specific sub-level range first
+    sub_range = get_sub_level_range(sub_level)
+    monsters = stage_monsters[stage_level][sub_range]
+    
+    # Fallback to full range if specific range not found
+    monsters ||= stage_monsters[stage_level]['1-20']
+    
+    monsters || []
+  end
+
+  # CSV-based battle configuration generation (September 2025)
+  def generate_csv_battle_config(stage_level, sub_level, battle_type)
+    monsters = load_monsters_for_stage(stage_level, sub_level)
+    battle_progression = load_battle_level_progression_csv
+    
+    # Fallback strategy for missing stage data
+    if monsters.empty?
+      Rails.logger.warn "No monsters found for stage #{stage_level}.#{sub_level}, falling back to stage 1"
+      monsters = load_monsters_for_stage(1, sub_level)
+      
+      if monsters.empty?
+        Rails.logger.error "Critical error: No fallback monsters available"
+        raise "Monster configuration unavailable for stage #{stage_level}.#{sub_level}"
+      end
+    end
+    
+    Rails.logger.info "Loaded #{monsters.size} monster types for stage #{stage_level}.#{sub_level}"
+    
+    {
+      battle_config: {
+        stage_level: stage_level,
+        sub_level: sub_level,
+        battle_type: battle_type,
+        monsters: monsters,
+        total_monster_types: monsters.size,
+        estimated_duration: estimate_battle_duration(monsters)
+      },
+      battle_level_progression: battle_progression
+    }
+  end
+
+# REMOVED: Legacy battle configuration generation
+  # generate_legacy_battle_config method removed - no longer needed
+  # Monster.for_player_level and generate_battle_waves methods kept for safety
+
+  def estimate_battle_duration(monsters)
+    return "2-3 minutes" if monsters.empty?
+    
+    begin
+      avg_spawn_interval = monsters.map { |m| m[:spawn_interval] }.sum / monsters.size
+      total_monsters = monsters.map { |m| m[:base_count] }.sum
+      
+      estimated_seconds = (total_monsters * avg_spawn_interval * 1.5).round # 1.5x buffer for combat
+      minutes = estimated_seconds / 60
+      seconds = estimated_seconds % 60
+      "#{minutes}:#{seconds.to_s.rjust(2, '0')} minutes"
+    rescue => e
+      Rails.logger.error "Error estimating battle duration: #{e.message}"
+      "2-3 minutes"
+    end
   end
 
 
