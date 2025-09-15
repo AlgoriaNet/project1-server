@@ -52,6 +52,21 @@ class BattleChannel < ApplicationCable::Channel
       # Apply rewards to player (save immediately)
       ApplicationRecord.transaction do
         apply_rewards_to_player(rewards)
+
+        # Handle stage progression on victory
+        if victory && _json['current_stage']
+          completed_stage = _json['current_stage'].to_i
+          current_max = player.max_unlocked_stage || 1
+
+          # Unlock next stage if player completed their current max stage or higher
+          if completed_stage >= current_max
+            player.max_unlocked_stage = completed_stage + 1
+            Rails.logger.info "Player #{player.id} completed stage #{completed_stage}, unlocked stage #{completed_stage + 1}"
+          end
+        end
+
+        # Save all changes (rewards + stage progression)
+        player.save!
       end
       
       # Return complete battle result with rewards
