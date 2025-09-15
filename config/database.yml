@@ -14,15 +14,25 @@ local: &local
   username: root
   password: root
 
+# server: &server
+#   adapter: mysql2
+#   timezone: "+08:00"
+#   encoding: utf8
+#   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
+#   host: bj-cdb-mr8p7rc2.sql.tencentcdb.com
+#   port: 25808
+#   username: root
+#   password: ydgui6987528
+
 server: &server
   adapter: mysql2
   timezone: "+08:00"
   encoding: utf8
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
-  host: bj-cdb-mr8p7rc2.sql.tencentcdb.com
-  port: 25808
+  host: usw-cynosdbmysql-grp-auydyhpr.sql.tencentcdb.com
+  port: 25632
   username: root
-  password: ydgui6987528
+  password: Ydgui6987528
 
 default: &default
   adapter: sqlite3
