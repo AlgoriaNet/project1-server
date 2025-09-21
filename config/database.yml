@@ -29,10 +29,10 @@ server: &server
   timezone: "+08:00"
   encoding: utf8
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
-  host: usw-cynosdbmysql-grp-auydyhpr.sql.tencentcdb.com
-  port: 25632
+  host: bj-cdb-mr8p7rc2.sql.tencentcdb.com
+  port: 25808
   username: root
-  password: Ydgui6987528
+  password: ydgui6987528
 
 default: &default
   adapter: sqlite3

@@ -161,6 +161,7 @@ Player objects were cached in WebSocket connections causing stale inventory data
 - Never use broad `destroy_all` on production player data
 - Embedded gems (equipment_id present) should never be touched by test scripts
 
+
 ## Current Development Status
 
 ### Completed Systems

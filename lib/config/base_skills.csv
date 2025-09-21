@@ -8,7 +8,7 @@ int,string,string,float,float,int,float,float,float,float,float,int,int,int,int,
 6,Skill_Dark_Touch,Skill_06_Zhara,6.0,3.0,0,0.8,0.8,1.2,1.0,1.0,0,10,1,1,0.0,0.0,true,true,false,false,false,Dark,LatestMultiple,{},"Dark Touch - Summons undead spirits that fly in a straight line"
 7,Skill_Chain_Lightning,Skill_07_Elenya,6.0,1.0,0,1.2,1.2,1.8,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,false,Light,Random,{},"Chain Lightning - Summons divine thunder to attack random enemies"
 8,Skill_Dummy_Rowan,Skill_08_Rowan,5.0,1.5,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Placeholder skill for Rowan"
-9,Skill_IceCrackBullet,Skill_09_Liraen,5.0,1.0,0,1.2,1.2,1.8,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,false,Ice,Random,{},"Ice Crack Bullet - Drops an ice spike that damages and freezes enemies"
+9,Skill_IceCrackBullet,Skill_09_Liraen,2.5,1.0,0,1.2,1.2,1.8,10.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,false,Ice,LatestMultiple,{},"Ice Crack Bullet - Drops an ice spike that damages and freezes enemies"
 10,Skill_Inferno,Skill_10_Cedric,6.0,1.5,0,0.8,0.8,1.2,0.0,1.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Fire,Random,{},"Inferno - Summons hellfire in target area with burning effects"
 11,Skill_Thunder_Bolt,Skill_11_Selena,8.0,2.0,0,0.5,0.5,0.8,0.0,1.5,0,10,1,1,0.0,0.0,false,true,false,false,false,Light,LatestMultiple,{},"Thunder Bolt - Shoots a light beam causing continuous damage"
 12,Skill_Ice_Spike,Skill_12_Morgath,10.0,2.5,0,0.2,0.2,0.3,0.0,3.5,0,10,1,1,0.0,0.0,false,true,true,false,false,Ice,Random,{},"Ice Spike - Creates ice barriers that block and damage enemies"
