@@ -12,7 +12,9 @@ class BaseSidekick < ApplicationRecord
       'Skill' => {
         'Name' => base_skill.name,
         'Cd' => base_skill.cd,
-        'Duration' => base_skill.duration
+        'Duration' => base_skill.duration,
+        'Speed' => base_skill.speed,
+        'SkillTargetType' => base_skill.skill_target_type
       }
     })
   end
