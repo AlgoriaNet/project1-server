@@ -749,7 +749,7 @@ class PlayerChannel < ApplicationCable::Channel
         
         # Store only essential data
         effects_hash[effect_key] = {
-          effects: effect.effects
+          effects: JSON.parse(effect.effects)
         }
       end
       
