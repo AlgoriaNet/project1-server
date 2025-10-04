@@ -10,8 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
-  create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
+ActiveRecord::Schema[7.1].define(version: 2025_10_03_160155) do
+  create_table "base_equipments", charset: "utf8", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
     t.integer "quality", null: false, comment: "品质"
@@ -23,7 +23,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.string "display_name"
   end
 
-  create_table "base_items", charset: "utf8mb3", force: :cascade do |t|
+  create_table "base_items", charset: "utf8", force: :cascade do |t|
     t.string "name"
     t.text "description"
     t.datetime "created_at", null: false
@@ -35,7 +35,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["name"], name: "index_base_items_on_unique_name", unique: true
   end
 
-  create_table "base_sidekicks", charset: "utf8mb3", force: :cascade do |t|
+  create_table "base_sidekicks", charset: "utf8", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
     t.integer "skill_id", null: false, comment: "Base技能"
@@ -58,22 +58,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["fragment_name"], name: "index_base_sidekicks_on_fragment_name"
   end
 
-  create_table "base_skill_level_up_effects", charset: "utf8mb3", force: :cascade do |t|
+  create_table "base_skill_level_up_effects", charset: "utf8", force: :cascade do |t|
     t.integer "skill_id", null: false
-    t.string "effect_name", limit: 25, comment: "效果名称"
     t.integer "level", null: false, comment: "等级"
     t.text "effects", null: false, comment: "效果"
-    t.integer "weight", default: 10, comment: "3选1权重"
-    t.string "depend_character", limit: 225, comment: "依赖特性"
-    t.integer "max_count", default: 1, null: false, comment: "3选1最大出现次数"
-    t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "gold_cost"
     t.index ["skill_id"], name: "fk_rails_c33a2be3e9"
   end
 
-  create_table "base_skills", id: :integer, charset: "utf8mb3", force: :cascade do |t|
+  create_table "base_skills", id: :integer, charset: "utf8", force: :cascade do |t|
     t.string "name", null: false, comment: "技能名称"
     t.string "icon", null: false, comment: "技能图标"
     t.float "cd", default: 10.0, null: false, comment: "技能CD"
@@ -104,7 +98,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["name"], name: "index_base_skills_on_name", unique: true
   end
 
-  create_table "battle_formations", charset: "utf8mb3", force: :cascade do |t|
+  create_table "battle_formations", charset: "utf8", force: :cascade do |t|
     t.bigint "player_id", null: false
     t.bigint "sidekick1_id"
     t.bigint "sidekick2_id"
@@ -119,7 +113,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["sidekick4_id"], name: "battle_formation_sidekicks4_id_fk"
   end
 
-  create_table "equipments", charset: "utf8mb3", force: :cascade do |t|
+  create_table "equipments", charset: "utf8", force: :cascade do |t|
     t.bigint "base_equipment_id", null: false
     t.integer "intensify_level", default: 0, comment: "强化等级"
     t.text "nearby_attributes"
@@ -137,7 +131,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["player_id"], name: "equipments_players_id_fk"
   end
 
-  create_table "gemstone_entries", charset: "utf8mb3", force: :cascade do |t|
+  create_table "gemstone_entries", charset: "utf8", force: :cascade do |t|
     t.string "effect_description"
     t.string "effect_name"
     t.datetime "created_at", null: false
@@ -147,7 +141,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.decimal "base_value", precision: 8, scale: 2
   end
 
-  create_table "gemstones", charset: "utf8mb3", force: :cascade do |t|
+  create_table "gemstones", charset: "utf8", force: :cascade do |t|
     t.string "name"
     t.string "description"
     t.integer "level"
@@ -169,14 +163,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["secondary_entry_id"], name: "fk_rails_ff7a298a3a"
   end
 
-  create_table "heros", charset: "utf8mb3", force: :cascade do |t|
+  create_table "heros", charset: "utf8", force: :cascade do |t|
     t.string "name"
     t.integer "player_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  create_table "main_stages", charset: "utf8mb3", force: :cascade do |t|
+  create_table "main_stages", charset: "utf8", force: :cascade do |t|
     t.integer "level"
     t.string "name"
     t.json "monsters"
@@ -190,7 +184,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.integer "stage_number"
   end
 
-  create_table "monsters", charset: "utf8mb3", force: :cascade do |t|
+  create_table "monsters", charset: "utf8", force: :cascade do |t|
     t.string "name"
     t.integer "range"
     t.string "type"
@@ -205,7 +199,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.json "rewards"
   end
 
-  create_table "orders", charset: "utf8mb3", force: :cascade do |t|
+  create_table "orders", charset: "utf8", force: :cascade do |t|
     t.bigint "player_id", null: false
     t.string "order_id", null: false
     t.string "product_id", null: false
@@ -225,7 +219,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["player_id"], name: "index_orders_on_player_id"
   end
 
-  create_table "players", charset: "utf8mb3", force: :cascade do |t|
+  create_table "players", charset: "utf8", force: :cascade do |t|
     t.string "name", comment: "用户昵称"
     t.integer "level", default: 1, null: false, comment: "等级"
     t.integer "exp", default: 0, null: false, comment: "经验"
@@ -250,7 +244,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["stage_level"], name: "index_players_on_stage_level"
   end
 
-  create_table "purchase_products", charset: "utf8mb3", force: :cascade do |t|
+  create_table "purchase_products", charset: "utf8", force: :cascade do |t|
     t.string "product_id", null: false
     t.decimal "money", precision: 10, scale: 2, null: false
     t.string "currency", default: "USD"
@@ -261,7 +255,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.index ["product_id"], name: "index_purchase_products_on_product_id", unique: true
   end
 
-  create_table "sidekicks", charset: "utf8mb3", force: :cascade do |t|
+  create_table "sidekicks", charset: "utf8", force: :cascade do |t|
     t.integer "base_id"
     t.integer "skill_level"
     t.integer "star"
@@ -271,7 +265,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_14_064909) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "users", charset: "utf8mb3", force: :cascade do |t|
+  create_table "users", charset: "utf8", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
     t.datetime "created_at", null: false

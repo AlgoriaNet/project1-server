@@ -1,7 +1,7 @@
 id,sidekick_id,skill_prefab,skill_name
 int,int,string,string
 1,1,Skill_FireTornado,Fire Tornado
-2,2,Skill_Dummy,Dummy
+2,2,Skill_RepairDrone,Repair Drone
 3,3,Skill_Wind_Feather,Wind Feather
 4,4,Skill_Storm_Blade,Storm Blade
 5,5,Skill_Black_Hole,Black Hole
