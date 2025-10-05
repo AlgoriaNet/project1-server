@@ -70,16 +70,11 @@ class Api::AlliesController < ApplicationController
   # Shared logic for both REST and WebSocket
   def self.upgrade_levels_for_ally(sidekick, ally_id, current_level = 1)
     BaseSkillLevelUpEffect.where(skill_id: sidekick.skill_id)
-      .select { |upgrade| 
-        effects = JSON.parse(upgrade.effects || '{}')
-        effects['sidekick_fragment_name'] == ally_id
-      }
-      .sort_by(&:level)
+      .order(:level)
       .map do |upgrade|
         {
           level: "L#{upgrade.level.to_s.rjust(2, '0')}",
-          description: upgrade.description,
-          cost: upgrade.weight,
+          effects: JSON.parse(upgrade.effects || '{}'),
           is_unlocked: current_level >= upgrade.level
         }
       end
