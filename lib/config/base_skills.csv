@@ -7,7 +7,7 @@ int,string,string,float,float,int,float,float,float,float,float,int,int,int,int,
 5,Skill_Black_Hole,Skill_05_Lyanna,10.0,2.0,0,0.5,0.5,0.8,0.0,1.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Dark,Random,{},"Black Hole - Releases dark energy that damages and heals defense line"
 6,Skill_Dark_Touch,Skill_06_Zhara,6.0,3.0,0,0.8,0.8,1.2,1.0,1.0,0,10,1,1,0.0,0.0,true,true,false,false,false,Dark,LatestMultiple,{},"Dark Touch - Summons undead spirits that fly in a straight line"
 7,Skill_Chain_Lightning,Skill_07_Elenya,6.0,1.0,0,1.2,1.2,1.8,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,false,Light,Random,{},"Chain Lightning - Summons divine thunder to attack random enemies"
-8,Skill_Dummy_Rowan,Skill_08_Rowan,5.0,1.5,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Placeholder skill for Rowan"
+8,Skill_SacredSlash,Skill_08_Rowan,5.0,4.0,0,2.0,2.0,3.0,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Sacred Slash - Launches a sacred projectile that travels for 4 seconds"
 9,Skill_IceCrackBullet,Skill_09_Liraen,2.5,1.0,0,1.2,1.2,1.8,36.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,false,Ice,LatestMultiple,{},"Ice Crack Bullet - Drops an ice spike that damages and freezes enemies"
 10,Skill_Inferno,Skill_10_Cedric,6.0,1.5,0,0.8,0.8,1.2,0.0,1.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Fire,Random,{},"Inferno - Summons hellfire in target area with burning effects"
 11,Skill_Thunder_Bolt,Skill_11_Selena,8.0,2.0,0,0.5,0.5,0.8,0.0,1.5,0,10,1,1,0.0,0.0,false,true,false,false,false,Light,LatestMultiple,{},"Thunder Bolt - Shoots a light beam causing continuous damage"
