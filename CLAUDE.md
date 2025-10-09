@@ -100,12 +100,46 @@ render_response "star_upgrade", json, {
 ## Configuration System
 Game balance is driven by CSV files in `lib/config/`:
 - `base_sidekicks.csv`: Sidekick templates and stats
+- `base_skills.csv`: Skill configurations (cooldown, duration, damage, etc.)
 - `level_up_costs.csv`: Universal level upgrade costs
 - `star_upgrade_costs.csv`: Universal star upgrade costs
 - `draw_cost.csv`: Gacha system costs
 - And more...
 
-**Data Loading**: CSV files are processed by generator scripts that destroy/recreate database records.
+### ⚠️ CRITICAL: CSV-to-Database Update Policy
+
+**🚫 BANNED METHOD - NEVER USE THIS:**
+```ruby
+# ❌ NEVER EVER RUN THESE GENERATOR SCRIPTS
+GenerateBaseSkills.generate      # Destroys ALL skills and skill effects
+GenerateBaseEquipment.generate   # Destroys ALL equipment including player items
+GenerateBaseSidekicks.generate   # Destroys ALL sidekick templates
+# ANY script with .destroy_all is BANNED
+```
+
+**Why This Is Banned:**
+- Past incidents caused complete data loss (equipment, skills, player progress)
+- `destroy_all` has cascading effects that delete player data
+- Recovery requires database restoration
+- These scripts were designed for initial setup, NOT production updates
+
+**✅ CORRECT METHOD - Direct Database Updates:**
+```ruby
+# ✅ ALWAYS use surgical database updates for CSV changes
+BaseSkill.find(15).update(name: 'NewName', duration: 7.0)
+BaseEquipment.find(3).update(display_name: 'New Display Name')
+```
+
+**Update Workflow:**
+1. Edit CSV file (source of truth)
+2. Update specific database record(s) with `.update()`
+3. Commit both CSV and note that database was manually synced
+4. NEVER run generator scripts in production
+
+**Historical Context:**
+- [2025-08-07] GenerateBaseEquipment.generate deleted ALL player equipment
+- [2025-10-09] Established policy: Generator scripts are banned in production
+- CSV files remain source of truth, but updates must be surgical
 
 ## Known Issues & Patterns
 
@@ -493,6 +527,7 @@ end
 - **NOT data value inconsistencies** - those are backend bugs
 
 ## Recent Updates
+- [2025-10-09] [POLICY: Generator Scripts Banned]: Established permanent ban on all CSV generator scripts (GenerateBaseSkills, GenerateBaseEquipment, etc.) for production use. All CSV updates must use surgical database .update() calls. Added comprehensive documentation in Configuration System section. Updated Velan's skill from dummy to Skill_PoisonDartVolley (duration 2.0s, 6-dart attack pattern).
 - [2025-08-07] [CRITICAL: CSV Display Name Update Disaster]: ⚠️ **NEVER use GenerateBaseEquipment.generate for simple renames**. Contains `Equipment.destroy_all` which deleted ALL player equipment (hero, allies, inventory). For display name changes, use direct SQL UPDATE on base_equipments table only. Cost: Complete equipment data loss across all players.
 - [2025-08-06] [Critical Race Condition Fix]: Fixed equipment data inconsistency bug affecting all equipment APIs. PlayerProfile now created after equipment operations complete, eliminating stale data in API responses. Also implemented gem transfer system to preserve gems during equipment replace operations.
 - [2025-08-04] [Washing System Redesign]: Implemented probability-based washing system replacing fixed-count approach. Added quality-based probability rules (60%/30%/10% for Quality 3, etc.) with appropriate value ranges. Old `washing_config.csv` marked obsolete. System tested and working with expected probability distributions.

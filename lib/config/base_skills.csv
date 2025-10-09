@@ -14,7 +14,7 @@ int,string,string,float,float,int,float,float,float,float,float,int,int,int,int,
 12,Skill_Ice_Spike,Skill_12_Morgath,10.0,2.5,0,0.2,0.2,0.3,0.0,3.5,0,10,1,1,0.0,0.0,false,true,true,false,false,Ice,Random,{},"Ice Spike - Creates ice barriers that block and damage enemies"
 13,Skill_Blazing_Ray,Skill_13_Zyphira,4.5,1.5,0,1.2,1.2,1.8,10.0,1.0,0,10,1,1,0.0,0.0,true,true,true,true,true,Fire,LatestMultiple,{},"Blazing Ray - Fires explosive fireballs with splash damage"
 14,Skill_Mega_Laser,Skill_14_Kaelith,30.0,2.5,0,0.0,0.0,0.0,0.0,0.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Light,Central,{},"Mega Laser - Sacred protection that heals defense line (triggers at 20% HP)"
-15,Skill_Dummy_Velan,Skill_15_Velan,5.0,1.5,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Placeholder skill for Velan"
+15,Skill_PoisonDartVolley,Skill_15_Velan,5.0,2.0,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Poison Dart Volley - Fires 6 poison darts in a spread pattern that deal damage and apply poison damage over time"
 16,Skill_Dummy_Ragnar,Skill_16_Ragnar,5.0,1.5,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Placeholder skill for Ragnar"
 17,Skill_Bomb_Blast,Skill_17_Lucien,4.0,1.5,0,1.0,1.0,1.5,0.5,1.0,0,10,1,1,0.0,0.0,true,true,false,false,false,Physical,LatestMultiple,{},"Bomb Blast - Throws sharp arrows that penetrate multiple enemies"
 18,Skill_Dummy_Ugra,Skill_18_Ugra,5.0,1.5,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Placeholder skill for Ugra"
