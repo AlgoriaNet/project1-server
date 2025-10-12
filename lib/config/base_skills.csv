@@ -19,4 +19,4 @@ int,string,string,float,float,int,float,float,float,float,float,int,int,int,int,
 17,Skill_Bomb_Blast,Skill_17_Lucien,4.0,1.5,0,1.0,1.0,1.5,0.5,1.0,0,10,1,1,0.0,0.0,true,true,false,false,false,Physical,LatestMultiple,{},"Bomb Blast - Throws sharp arrows that penetrate multiple enemies"
 18,Skill_FoxFireWhirlwind,Skill_18_Ugra,15.0,10.0,0,1.5,1.5,2.25,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Fox Fire Whirlwind - Summons a whirlwind of fox fire that deals damage over 10 seconds"
 19,Skill_Ice_Spear,Skill_19_Eleanor,6.0,2.0,0,0.8,0.8,1.2,0.0,2.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Ice,Random,{},"Ice Spear - Creates frost bloom that freezes and damages enemies"
-20,Skill_Dummy_Nyx,Skill_20_Nyx,5.0,1.5,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Placeholder skill for Nyx"
+20,Skill_FairyWindDance,Skill_20_Nyx,12.0,3.0,0,1.5,1.5,2.25,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Fairy Wind Dance - Launches 5 wind blades in sequence over 3 seconds"
