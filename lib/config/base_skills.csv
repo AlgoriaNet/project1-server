@@ -1,6 +1,6 @@
 id,name,icon,cd,duration,max_angle,damage_ratio,two_stage_damage_ratio,three_stage_damage_ratio,speed,scope,split_count,release_ultimate_count,release_count,launches_count,launches_interval,destroy_delay,is_dynamic,is_living_position_release,is_impenetrability,is_trace_monster,is_cd_rest_by_released,damage_type,skill_target_type,active_character,description
 int,string,string,float,float,int,float,float,float,float,float,int,int,int,int,float,float,boolean,boolean,boolean,boolean,boolean,string,string,text,text
-1,Skill_FireTornado,Skill_01_Zorath,8.0,3.0,30,0.5,0.5,0.8,3.0,1.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Fire,LatestMultiple,{},"Fire Tornado - Releases a torrent of hot flames in a straight line"
+1,Skill_FireTornado,Skill_01_Zorath,10.0,8.0,30,0.5,0.5,0.8,3.0,1.0,0,10,1,1,0.0,0.0,false,true,false,false,false,Fire,LatestMultiple,{},"Fire Tornado - Releases a torrent of hot flames in a straight line"
 2,Skill_RepairDrone,Skill_02_Gideon,5.0,7.0,0,1.0,1.0,1.5,0.0,1.0,0,10,1,1,0.0,0.0,false,true,true,false,true,Physical,Latest,{},"Repair Drone - Deploys a repair drone for battlefield support"
 3,Skill_Wind_Feather,Skill_03_Sylas,5.0,1.0,0,1.2,1.2,1.8,20.0,1.0,0,10,1,1,0.0,0.0,true,true,true,false,false,Wind,LatestMultiple,{},"Wind Feather - Throws a wind feather that penetrates enemies"
 4,Skill_Storm_Blade,Skill_04_Aurelia,12.0,3.0,0,0.5,0.5,0.8,10.0,1.0,0,10,1,1,0.0,0.0,true,true,false,false,false,Wind,LatestMultiple,{},"Storm Blade - Launches multiple wind blades in a straight line"
