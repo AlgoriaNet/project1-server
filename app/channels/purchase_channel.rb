@@ -19,7 +19,7 @@ class PurchaseChannel < ApplicationCable::Channel
   def callback(json)
     _json = JSON.parse(json['json'])
     begin
-      PurchaseCallback.new(params[:user_id], _json).callback
+      reward_items = PurchaseCallback.new(params[:user_id], _json).callback
       render_response "callback", json, {rewards: reward_items, Player: Player.find(params[:user_id]).as_ws_json}
     rescue StandardError => e
       Rails.logger.error "Callback error: #{e.message}"
