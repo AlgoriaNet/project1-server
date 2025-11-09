@@ -37,11 +37,15 @@ class Equipment < ApplicationRecord
   
   # New method for equipment-based gem embedding
   def get_embedded_gems_summary
+    # All gemstones here are already scoped to THIS equipment and thus to the same part (e.g., helm).
+    # Build a hash once to avoid 5 separate DB lookups.
+    gems_by_slot = gemstones.to_h { |g| [g.slot_number, g] }
+
     (1..5).map do |slot|
-      gem = self.gemstones.find_by(slot_number: slot)
+      gem = gems_by_slot[slot]
       {
         slot: slot,
-        gem: gem&.as_ws_json,
+        gem:  gem&.as_ws_json,  # keeps the exact output shape
         is_empty: gem.nil?
       }
     end

@@ -29,20 +29,41 @@ class PlayerProfile
   end
 
   def as_ws_json
+    Rails.logger.info "[Perf] PlayerProfile#as_ws_json START at #{Time.now.to_f}"
+
     # CRITICAL: Reload player data to ensure fresh data for items like heroKey, rareKey, epicKey
     @player.reload
     player_data = @player.as_ws_json
-    
+
     # CRITICAL: Use uncached queries to ensure fresh data after deployment mutations
-    ActiveRecord::Base.uncached do
+    Rails.logger.info "[Perf] [as_ws_json] equipments start: #{Time.now.to_f}"
+    equipments = Equipment.includes(:base_equipment, :gemstones).where(player_id: @player_id).map(&:as_ws_json)
+    Rails.logger.info "[Perf] [as_ws_json] equipments end: #{Time.now.to_f}"
+
+    Rails.logger.info "[Perf] [as_ws_json] gemstones start: #{Time.now.to_f}"
+    gemstones = Gemstone.includes(:gemstone_entry, :secondary_gemstone_entry).where(player_id: @player_id).map(&:as_ws_json)
+    Rails.logger.info "[Perf] [as_ws_json] gemstones end: #{Time.now.to_f}"
+
+    Rails.logger.info "[Perf] [as_ws_json] sidekicks start: #{Time.now.to_f}"
+    sidekicks = Sidekick.includes(base_sidekick: :base_skill).where(player_id: @player_id).map(&:as_ws_json)
+    Rails.logger.info "[Perf] [as_ws_json] sidekicks end: #{Time.now.to_f}"
+
+    Rails.logger.info "[Perf] [as_ws_json] draw_costs start: #{Time.now.to_f}"
+    costs = draw_costs
+    Rails.logger.info "[Perf] [as_ws_json] draw_costs end: #{Time.now.to_f}"
+
+    result = ActiveRecord::Base.uncached do
       {
         Player: player_data.merge({
-                                   equipments: Equipment.includes(:base_equipment).where(player_id: @player_id).map(&:as_ws_json),
-                                   gemstones: Gemstone.includes(:gemstone_entry, :secondary_gemstone_entry).where(player_id: @player_id).map(&:as_ws_json),
-                                   sidekicks: Sidekick.includes(base_sidekick: :base_skill).where(player_id: @player_id).map(&:as_ws_json),
-                                   draw_costs: draw_costs,
+                                   equipments: equipments,
+                                   gemstones: gemstones,
+                                   sidekicks: sidekicks,
+                                   draw_costs: costs,
                                  }),
       }
     end
+
+    Rails.logger.info "[Perf] PlayerProfile#as_ws_json END at #{Time.now.to_f}"
+    result
   end
 end

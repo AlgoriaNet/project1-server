@@ -103,9 +103,11 @@ class Player < ApplicationRecord
 
   # Override as_ws_json to ensure summoned_allies is always included
   def as_ws_json(options = nil)
+    Rails.logger.info "[Perf] Player#as_ws_json START at #{Time.now.to_f}"
     # Ensure summoned_allies is always an array, never nil
     attrs = super(options)
     attrs['summoned_allies'] = summoned_allies || []
+    Rails.logger.info "[Perf] Player#as_ws_json END at #{Time.now.to_f}"
     attrs
   end
 
