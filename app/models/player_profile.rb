@@ -38,8 +38,8 @@ class PlayerProfile
       {
         Player: player_data.merge({
                                    equipments: Equipment.includes(:base_equipment).where(player_id: @player_id).map(&:as_ws_json),
-                                   gemstones: Gemstone.includes(:gemstone_entry).where(player_id: @player_id).map(&:as_ws_json),
-                                   sidekicks: Sidekick.includes(:base_sidekick).where(player_id: @player_id).map(&:as_ws_json),
+                                   gemstones: Gemstone.includes(:gemstone_entry, :secondary_gemstone_entry).where(player_id: @player_id).map(&:as_ws_json),
+                                   sidekicks: Sidekick.includes(base_sidekick: :base_skill).where(player_id: @player_id).map(&:as_ws_json),
                                    draw_costs: draw_costs,
                                  }),
       }
