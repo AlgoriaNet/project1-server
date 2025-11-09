@@ -20,7 +20,7 @@ class DrawChannel < ApplicationCable::Channel
       else
         render_response "draw", json, {
           gems: rewards.map(&:as_ws_json),
-          all_gems: player.reload.gemstones.map(&:as_ws_json),
+          all_gems: player.reload.gemstones.includes(:gemstone_entry, :secondary_gemstone_entry).map(&:as_ws_json),
           Player: player.as_ws_json,
         }
       end

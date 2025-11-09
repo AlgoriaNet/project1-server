@@ -6,11 +6,11 @@ class GemstoneChannel < ApplicationCable::Channel
   end
 
   def gems
-    Gemstone.includes(:gemstone_entry).where(player_id: params[:user_id]).map(&:as_ws_json)
+    Gemstone.includes(:gemstone_entry, :secondary_gemstone_entry).where(player_id: params[:user_id]).map(&:as_ws_json)
   end
 
   def info
-    render_response "info", {}, @player.gemstones.map(&:as_ws_json)
+    render_response "info", {}, player_gemstones_with_includes.map(&:as_ws_json)
   end
 
   def lock(json)
@@ -18,7 +18,7 @@ class GemstoneChannel < ApplicationCable::Channel
     gemstone = @player.gemstones.where(player_id: @player_id, id: gemstone_id).first
     if gemstone.present?
       gemstone.lock.save!
-      render_response "lock", json, @player.gemstones.map(&:as_ws_json)
+      render_response "lock", json, player_gemstones_with_includes.map(&:as_ws_json)
     end
   end
 
@@ -27,7 +27,7 @@ class GemstoneChannel < ApplicationCable::Channel
     gemstone = @player.gemstones.where(player_id: @player_id, id: gemstone_id).first
     if gemstone.present?
       gemstone.unlock.save!
-      render_response "unlock", json, @player.gemstones.map(&:as_ws_json)
+      render_response "unlock", json, player_gemstones_with_includes.map(&:as_ws_json)
     end
   end
 
@@ -71,7 +71,7 @@ class GemstoneChannel < ApplicationCable::Channel
         slot_number: slot_number,
         gem_id: gemstone_id,
         updated_equipment: equipment.reload.as_ws_json,
-        inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+        inventory_gems: player_inventory_gems_with_includes.map(&:as_ws_json)
       }
     else
       render_error "inlay", json, result[:error], 400
@@ -132,7 +132,7 @@ class GemstoneChannel < ApplicationCable::Channel
           equipment_id: equipment_id,
           slot_number: slot_number,
           updated_equipment: equipment.reload.as_ws_json,
-          inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+          inventory_gems: player_inventory_gems_with_includes.map(&:as_ws_json)
         }
       else
         render_error "outlay", json, result[:error], 400
@@ -140,12 +140,12 @@ class GemstoneChannel < ApplicationCable::Channel
     else
       # Legacy gemstone-based outlay
       gemstone = @player.gemstones.find_by(id: gemstone_id)
-      
+
       if gemstone.blank?
         render_error "outlay", json, "Gemstone not found", 404
         return
       end
-      
+
       if gemstone.is_embedded?
         result = gemstone.outlay_from_equipment
         if result[:success]
@@ -153,7 +153,7 @@ class GemstoneChannel < ApplicationCable::Channel
           render_response "outlay", json, {
             success: true,
             gem_id: gemstone_id,
-            inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+            inventory_gems: player_inventory_gems_with_includes.map(&:as_ws_json)
           }
         else
           render_error "outlay", json, result[:error], 400
@@ -161,7 +161,7 @@ class GemstoneChannel < ApplicationCable::Channel
       else
         # Legacy outlay
         gemstone.outlay
-        render_response "outlay", json, @player.gemstones.map(&:as_ws_json)
+        render_response "outlay", json, player_gemstones_with_includes.map(&:as_ws_json)
       end
     end
   end
@@ -236,7 +236,7 @@ class GemstoneChannel < ApplicationCable::Channel
             slot_number: slot_number,
             gem_id: gemstone_id,
             updated_equipment: equipment.reload.as_ws_json,
-            inventory_gems: @player.gemstones.where(is_in_inventory: true).map(&:as_ws_json)
+            inventory_gems: player_inventory_gems_with_includes.map(&:as_ws_json)
           }
         else
           render_error "replace", json, "Failed to embed new gem: #{result[:error]}", 500
@@ -253,7 +253,7 @@ class GemstoneChannel < ApplicationCable::Channel
 
   def auto_upgrade(json)
     Gemstone.auto_upgrade(@player_id)
-    render_response "auto_upgrade", json, { gems: @player.gemstones.map(&:as_ws_json) }
+    render_response "auto_upgrade", json, { gems: player_gemstones_with_includes.map(&:as_ws_json) }
   end
   
   # New API: Get equipment gem status
@@ -295,14 +295,25 @@ class GemstoneChannel < ApplicationCable::Channel
       
       if result[:success]
         @player.reload # Refresh player data after merges
-        
+
         # Add updated inventory to response
-        result[:inventory_gems] = @player.gemstones.where(is_in_inventory: true, equipment_id: nil).map(&:as_ws_json)
-        
+        result[:inventory_gems] = player_inventory_gems_with_includes.where(equipment_id: nil).map(&:as_ws_json)
+
         render_response "auto_merge", json, result
       else
         render_error "auto_merge", json, result[:error], 500
       end
     end
+  end
+
+  private
+
+  # Helper methods to ensure proper eager loading
+  def player_gemstones_with_includes
+    @player.gemstones.includes(:gemstone_entry, :secondary_gemstone_entry)
+  end
+
+  def player_inventory_gems_with_includes
+    @player.gemstones.where(is_in_inventory: true).includes(:gemstone_entry, :secondary_gemstone_entry)
   end
 end

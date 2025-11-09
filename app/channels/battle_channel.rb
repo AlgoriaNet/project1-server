@@ -130,7 +130,7 @@ class BattleChannel < ApplicationCable::Channel
     # CRITICAL: Reload player to ensure fresh deployment data from other channel updates
     player.reload
     # Get player's deployed sidekicks from lineup
-    deployed_sidekicks = player.sidekicks.where(is_deployed: true).includes(:base_sidekick)
+    deployed_sidekicks = player.sidekicks.where(is_deployed: true).includes(base_sidekick: :base_skill)
     base_sidekicks = deployed_sidekicks.map(&:base_sidekick)
     
     # Frontend now uses StaticSkillEffectsCache instead of levelUpEffects
@@ -402,8 +402,8 @@ class BattleChannel < ApplicationCable::Channel
     {
       fixed: rewards[:fixed],
       skillbooks: rewards[:skillbooks],
-      equipment: rewards[:equipment].map(&:as_ws_json),
-      gemstones: rewards[:gemstones].map(&:as_ws_json)
+      equipment: rewards[:equipment].includes(:base_equipment).map(&:as_ws_json),
+      gemstones: rewards[:gemstones].includes(:gemstone_entry, :secondary_gemstone_entry).map(&:as_ws_json)
     }
   end
 
