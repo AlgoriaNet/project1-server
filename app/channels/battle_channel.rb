@@ -73,7 +73,16 @@ class BattleChannel < ApplicationCable::Channel
       render_response "battle_complete", json, {
         victory: victory,
         rewards: format_rewards_for_frontend(rewards),
-        updated_player: player.reload.as_ws_json
+        updated_player: {
+          id: player.id,
+          exp: player.exp,
+          gold_coin: player.gold_coin,
+          level: player.level,
+          items_json: player.items_json,
+          max_unlocked_stage: player.max_unlocked_stage,
+          new_equipment_ids: rewards[:equipment].map(&:id),
+          new_gemstone_ids: rewards[:gemstones].map(&:id)
+        }
       }
       
     rescue StandardError => e
