@@ -402,8 +402,8 @@ class BattleChannel < ApplicationCable::Channel
     {
       fixed: rewards[:fixed],
       skillbooks: rewards[:skillbooks],
-      equipment: rewards[:equipment].includes(:base_equipment).map(&:as_ws_json),
-      gemstones: rewards[:gemstones].includes(:gemstone_entry, :secondary_gemstone_entry).map(&:as_ws_json)
+      equipment: rewards[:equipment].map(&:as_ws_json),
+      gemstones: rewards[:gemstones].map(&:as_ws_json)
     }
   end
 
