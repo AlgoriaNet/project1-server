@@ -751,7 +751,7 @@ class PlayerChannel < ApplicationCable::Channel
         
         # Store only essential data
         effects_hash[effect_key] = {
-          effects: JSON.parse(effect.effects)
+          effects: effect.effects.is_a?(Hash) ? effect.effects : (JSON.parse(effect.effects || '{}') rescue {})
         }
       end
       

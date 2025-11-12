@@ -72,9 +72,18 @@ class Api::AlliesController < ApplicationController
     BaseSkillLevelUpEffect.where(skill_id: sidekick.skill_id)
       .order(:level)
       .map do |upgrade|
+        effects_data = upgrade.effects.is_a?(Hash) ? upgrade.effects : (JSON.parse(upgrade.effects || '{}') rescue {})
+
+        # For L01, return just the skill name string instead of the hash
+        display_effects = if upgrade.level == 1 && effects_data.is_a?(Hash) && effects_data["SkillName"]
+                            effects_data["SkillName"]
+                          else
+                            effects_data
+                          end
+
         {
           level: "L#{upgrade.level.to_s.rjust(2, '0')}",
-          effects: JSON.parse(upgrade.effects || '{}'),
+          effects: display_effects,
           is_unlocked: current_level >= upgrade.level
         }
       end
