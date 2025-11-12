@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_03_160155) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_12_131431) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -240,6 +240,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_03_160155) do
     t.integer "current_stage_id", default: 1, null: false, comment: "Current battle stage (1-100)"
     t.index ["current_stage_id"], name: "index_players_on_current_stage_id"
     t.index ["device_id"], name: "index_players_on_device_id", unique: true
+    t.index ["id", "device_id"], name: "index_players_on_id_and_device_id"
     t.index ["max_unlocked_stage"], name: "index_players_on_max_unlocked_stage"
     t.index ["stage_level"], name: "index_players_on_stage_level"
   end
@@ -263,6 +264,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_03_160155) do
     t.integer "player_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["player_id"], name: "index_sidekicks_on_player_id"
   end
 
   create_table "users", charset: "utf8mb3", force: :cascade do |t|
