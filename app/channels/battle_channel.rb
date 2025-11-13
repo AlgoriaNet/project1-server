@@ -77,8 +77,11 @@ class BattleChannel < ApplicationCable::Channel
           id: player.id,
           exp: player.exp,
           gold_coin: player.gold_coin,
+          diamond: player.diamond,
           level: player.level,
+          stamina: player.stamina,
           items_json: player.items_json,
+          summoned_allies: player.summoned_allies,
           max_unlocked_stage: player.max_unlocked_stage,
           new_equipment_ids: rewards[:equipment].map(&:id),
           new_gemstone_ids: rewards[:gemstones].map(&:id)
