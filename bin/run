@@ -2,6 +2,7 @@
 
 APP_PATH="/data/server/survivor_server"
 ENV="production"
+rvm use 3.2.2
 
 #RAILS_ENV="production" rails server &
 if [ "$#" -lt 1 ]; then
@@ -14,7 +15,7 @@ case "$1" in
         case "$2" in
             "start" | "")
                 echo "Starting server..."
-                RAILS_ENV="$ENV" rails server >> "$APP_PATH/log/server.log" 2>&1 &
+                RAILS_ENV="$ENV" bin/rails server >> "$APP_PATH/log/server.log" 2>&1 &
                 ;;
             "stop")
                 echo "Stopping server..."
