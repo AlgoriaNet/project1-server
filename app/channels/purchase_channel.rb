@@ -8,8 +8,8 @@ class PurchaseChannel < ApplicationCable::Channel
   def payment(json)
     _json = JSON.parse(json['json'])
     begin
-      order =Purchase.new(params[:user_id], _json).process
-      render_response "payment", json, order
+      order = Purchase.new(params[:user_id], _json).process
+      render_response "payment", json, { order_id: order.order_id }
     rescue StandardError => e
       Rails.logger.error "Purchase error: #{e.message}"
       render_error "payment", json, e.message, 500
