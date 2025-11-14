@@ -8,10 +8,12 @@ class PurchaseChannel < ApplicationCable::Channel
   def payment(json)
     _json = JSON.parse(json['json'])
     begin
+      Rails.logger.info "[IAP] Payment action called for player #{params[:user_id]}, product: #{_json['product_id']}"
       order = Purchase.new(params[:user_id], _json).process
+      Rails.logger.info "[IAP] Payment successful, order_id: #{order.order_id}"
       render_response "payment", json, { order_id: order.order_id }
     rescue StandardError => e
-      Rails.logger.error "Purchase error: #{e.message}"
+      Rails.logger.error "[IAP] Payment error: #{e.message}\n#{e.backtrace.join("\n")}"
       render_error "payment", json, e.message, 500
     end
   end
@@ -19,10 +21,12 @@ class PurchaseChannel < ApplicationCable::Channel
   def callback(json)
     _json = JSON.parse(json['json'])
     begin
+      Rails.logger.info "[IAP] Callback action called for player #{params[:user_id]}, order_id: #{_json['order_id']}"
       reward_items = PurchaseCallback.new(params[:user_id], _json).callback
+      Rails.logger.info "[IAP] Callback successful, rewards: #{reward_items.inspect}"
       render_response "callback", json, {rewards: reward_items, Player: Player.find(params[:user_id]).as_ws_json}
     rescue StandardError => e
-      Rails.logger.error "Callback error: #{e.message}"
+      Rails.logger.error "[IAP] Callback error: #{e.message}\n#{e.backtrace.join("\n")}"
       render_error "callback", json, e.message, 500
     end
   end
