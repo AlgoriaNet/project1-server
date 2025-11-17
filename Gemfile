@@ -50,6 +50,10 @@ gem 'psych', '~> 4'
 gem 'enumerize'
 gem 'roo'
 
+# Google Play IAP validation
+gem 'google-apis-androidpublisher_v3', '~> 0.52.0'
+gem 'googleauth', '~> 1.3'
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 

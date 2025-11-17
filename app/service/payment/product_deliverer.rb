@@ -10,6 +10,7 @@ module Payment
     end
 
     def deliver
+      reward_result = nil
       ActiveRecord::Base.transaction do
         reward = @product.reward_items
         # 发放货币
@@ -19,13 +20,15 @@ module Payment
         items.each do |item_id, count|
           @player.add_item!(item_id, count)
         end
-        # 记录日志
+        # Handle subscription card logic
         if @product.product_id.start_with?("card_")
-          card_purchased
+          reward_result = card_purchased
+        else
+          reward_result = @product.reward_items
         end
         @player.save!
-        @product.reward_items
       end
+      reward_result
     end
 
     def card_purchased
@@ -60,7 +63,6 @@ module Payment
           res[:purchased_type] = "renew"
           res[:monthly_card_expiry] = (expiry.to_date + 30.days).to_s
           @player.monthly_card_expiry = res[:monthly_card_expiry]
-          @player.save!
         end
       end
       res

@@ -15,25 +15,26 @@ class PurchaseCallback
     order = BaseValidator.new(@params).validate_callback!
 
     # 平台特定验证, Unity 不需要验证
-    case order.platform
+    case order.platform.downcase
     when 'apple'
-      Payment::AppleValidator.new(params[:receipt_data], sandbox: order.sandbox?).verify!
-    when 'google'
+      Payment::AppleValidator.new(@params[:receipt_data], sandbox: order.is_sandbox).verify!
+    when 'google', 'android'
       Payment::GoogleValidator.new(
-        'com.yourgame.package', # 替换为你的包名
+        'com.algoria.hero',
         order.product_id,
-        params[:receipt_data]
+        @params[:platform_order_id]
       ).verify!
     when 'unity'
       nil # Unity 平台不需要额外验证
     else
-      raise ArgumentError, ErrorMsg.INVALID_PLATFORM % order.platform
+      raise ArgumentError, Payment::ErrorMsg::INVALID_PLATFORM % order.platform
     end
 
     # 订单验证
     order = OrderValidator.new(@player_id, @params).validate!
 
     # 执行发货
+    reward_items = nil
     ActiveRecord::Base.transaction do
       reward_items = ProductDeliverer.new(order.order_id).deliver
       order.update!(status: :paid, deliver_time: Time.current)

@@ -11,7 +11,7 @@ class PurchaseChannel < ApplicationCable::Channel
       Rails.logger.info "[IAP] Payment action called for player #{params[:user_id]}, product: #{_json['product_id']}"
       order = Purchase.new(params[:user_id], _json).process
       Rails.logger.info "[IAP] Payment successful, order_id: #{order.order_id}"
-      render_response "payment", json, { order_id: order.order_id }
+      render_response "payment", json, {order_id: order.order_id}
     rescue StandardError => e
       Rails.logger.error "[IAP] Payment error: #{e.message}\n#{e.backtrace.join("\n")}"
       render_error "payment", json, e.message, 500
@@ -20,6 +20,12 @@ class PurchaseChannel < ApplicationCable::Channel
 
   def callback(json)
     _json = JSON.parse(json['json'])
+
+    # Merge unencrypted fields (receipt_data, money, currency) into the decrypted json
+    _json['receipt_data'] = json['receipt_data'] if json['receipt_data'].present?
+    _json['money'] = json['money'] if json['money'].present?
+    _json['currency'] = json['currency'] if json['currency'].present?
+
     begin
       Rails.logger.info "[IAP] Callback action called for player #{params[:user_id]}, order_id: #{_json['order_id']}"
       reward_items = PurchaseCallback.new(params[:user_id], _json).callback
