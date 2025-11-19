@@ -6,6 +6,7 @@ class Player < ApplicationRecord
   has_many :equipments
   has_many :gemstones
   has_many :battle_formations
+  has_many :first_charge_claims
 
 
   before_create :init_by_before_create

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_12_131431) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_18_155215) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -129,6 +129,31 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_131431) do
     t.index ["equip_with_hero_id"], name: "equipments_heros_id_fk"
     t.index ["equip_with_sidekick_id"], name: "equipments_sidekicks_id_fk"
     t.index ["player_id"], name: "equipments_players_id_fk"
+  end
+
+  create_table "first_charge_claims", charset: "utf8mb3", force: :cascade do |t|
+    t.bigint "player_id", null: false, comment: "Player who claimed the reward"
+    t.integer "tier", null: false, comment: "Tier level: 1, 2, or 3"
+    t.integer "day", null: false, comment: "Day number: 1, 2, or 3"
+    t.datetime "claimed_at", null: false, comment: "When the reward was claimed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id", "tier", "day"], name: "index_first_charge_claims_unique", unique: true
+    t.index ["player_id"], name: "index_first_charge_claims_on_player_id"
+  end
+
+  create_table "first_charge_tier_rewards", charset: "utf8mb3", force: :cascade do |t|
+    t.integer "tier", null: false, comment: "Tier level: 1, 2, or 3"
+    t.integer "day", null: false, comment: "Day number: 1, 2, or 3"
+    t.integer "sidekick_id", comment: "Sidekick ID (19 for Eleanor, only on day 1)"
+    t.integer "diamond", default: 0, null: false, comment: "Diamond amount to reward"
+    t.integer "rarekey_count", default: 0, null: false, comment: "Rare key count (day 1)"
+    t.integer "epickey_count", default: 0, null: false, comment: "Epic key count (day 2)"
+    t.integer "skillbook_count", default: 0, null: false, comment: "Skillbook count (day 3, for SKb_19_Eleanor)"
+    t.integer "shard_count", default: 10, null: false, comment: "Shard count if sidekick already owned"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tier", "day"], name: "index_first_charge_tier_rewards_on_tier_and_day", unique: true
   end
 
   create_table "gemstone_entries", charset: "utf8mb3", force: :cascade do |t|
@@ -284,6 +309,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_12_131431) do
   add_foreign_key "equipments", "heros", column: "equip_with_hero_id", name: "equipments_heros_id_fk"
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
   add_foreign_key "equipments", "sidekicks", column: "equip_with_sidekick_id", name: "equipments_sidekicks_id_fk"
+  add_foreign_key "first_charge_claims", "players"
   add_foreign_key "gemstones", "equipments"
   add_foreign_key "gemstones", "gemstone_entries", column: "secondary_entry_id"
   add_foreign_key "gemstones", "players"
