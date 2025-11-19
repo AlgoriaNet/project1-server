@@ -5,6 +5,35 @@ class FirstChargeChannel < ApplicationCable::Channel
     "first_charge_channel_#{params[:user_id]}"
   end
 
+  # Get all reward configurations for all tiers and days
+  # Returns array of 9 reward records (3 tiers × 3 days)
+  def get_reward_config(json)
+    _json = JSON.parse(json['json'])
+
+    begin
+      # Fetch all FirstChargeTierReward records
+      all_rewards = FirstChargeTierReward.all.map do |reward|
+        {
+          tier: reward.tier,
+          day: reward.day,
+          diamond: reward.diamond,
+          rarekey_count: reward.rarekey_count,
+          epickey_count: reward.epickey_count,
+          skillbook_count: reward.skillbook_count,
+          shard_count: reward.shard_count
+        }
+      end
+
+      render_response "get_reward_config", json, {
+        success: true,
+        rewards: all_rewards
+      }
+    rescue StandardError => e
+      Rails.logger.error "[FirstCharge] Error fetching reward config: #{e.message}\n#{e.backtrace.join("\n")}"
+      render_error "get_reward_config", json, "Failed to fetch reward configuration", 500
+    end
+  end
+
   # Claim first charge reward for a specific tier and day
   # Expected params: { tier: 1-3, day: 1-3 }
   def claim_reward(json)
