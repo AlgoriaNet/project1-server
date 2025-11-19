@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_18_155215) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_19_000000) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -209,6 +209,30 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_18_155215) do
     t.integer "stage_number"
   end
 
+  create_table "membership_card_claims", charset: "utf8mb3", force: :cascade do |t|
+    t.bigint "player_id", null: false, comment: "Player who claimed the reward"
+    t.string "card_type", null: false, comment: "Card type: 'weekly' or 'monthly'"
+    t.integer "day_number", null: false, comment: "Day number of the card duration"
+    t.datetime "claimed_at", null: false, comment: "When the reward was claimed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id", "card_type", "day_number"], name: "index_membership_card_claims_unique", unique: true
+    t.index ["player_id"], name: "index_membership_card_claims_on_player_id"
+  end
+
+  create_table "membership_card_rewards", charset: "utf8mb3", force: :cascade do |t|
+    t.string "card_type", null: false, comment: "Card type: 'weekly' or 'monthly'"
+    t.integer "diamond_one_time", default: 0, null: false, comment: "One-time diamond reward upon purchase"
+    t.integer "diamond_per_day", default: 0, null: false, comment: "Daily diamond reward (monthly only)"
+    t.integer "gold_per_day", default: 0, null: false, comment: "Daily gold reward"
+    t.integer "rarekey_per_day", default: 0, null: false, comment: "Daily rare key reward (weekly only)"
+    t.integer "epickey_per_day", default: 0, null: false, comment: "Daily epic key reward (weekly only)"
+    t.integer "stamina_per_day", default: 0, null: false, comment: "Daily stamina reward (monthly only, displayed as 'Power')"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["card_type"], name: "index_membership_card_rewards_on_card_type", unique: true
+  end
+
   create_table "monsters", charset: "utf8mb3", force: :cascade do |t|
     t.string "name"
     t.integer "range"
@@ -313,5 +337,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_18_155215) do
   add_foreign_key "gemstones", "equipments"
   add_foreign_key "gemstones", "gemstone_entries", column: "secondary_entry_id"
   add_foreign_key "gemstones", "players"
+  add_foreign_key "membership_card_claims", "players"
   add_foreign_key "orders", "players"
 end
