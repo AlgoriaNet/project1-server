@@ -45,9 +45,11 @@ module Payment
         )
         Rails.logger.info "[GoogleValidator] Google Play response: purchase_state=#{result.purchase_state}"
 
-        # Validate purchase state - must be purchased
-        unless result.purchase_state == 'purchased'
-          raise ArgumentError, "Google purchase state is not 'purchased': #{result.purchase_state}"
+        # Validate purchase state - must be purchased (1) or pending (0)
+        # Google Play returns: 0=pending, 1=purchased, 2=canceled
+        purchase_state = result.purchase_state.to_i
+        unless purchase_state == 1 || purchase_state == 0
+          raise ArgumentError, "Google purchase state is invalid: #{purchase_state}"
         end
         [true, result.to_h]
       rescue Google::Apis::Error => e
