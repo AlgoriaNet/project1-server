@@ -12,16 +12,19 @@ class PurchaseCallback
     # 参数验证
     # SignatureValidator.new(@params).validate!
     # 基础参数验证
+    Rails.logger.info "[IAP] PurchaseCallback.callback - @params keys: #{@params.keys.inspect}"
+    Rails.logger.info "[IAP] receipt_data value: #{@params['receipt_data'].inspect[0..100]}"
+
     order = BaseValidator.new(@params).validate_callback!
 
     # 平台特定验证, Unity 不需要验证
     case order.platform.downcase
     when 'apple'
-      Payment::AppleValidator.new(@params[:receipt_data], sandbox: order.is_sandbox).verify!
+      Payment::AppleValidator.new(@params['receipt_data'], sandbox: order.is_sandbox).verify!
     when 'google', 'android'
       # Extract purchase token from receipt_data JSON
       Rails.logger.info "[IAP] Parsing receipt_data for Google Play validation"
-      receipt_json = JSON.parse(@params[:receipt_data])
+      receipt_json = JSON.parse(@params['receipt_data'])
       Rails.logger.info "[IAP] Receipt JSON keys: #{receipt_json.keys.inspect}"
 
       # For Google Play receipts, the token is inside the Payload
