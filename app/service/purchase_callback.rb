@@ -28,8 +28,24 @@ class PurchaseCallback
       Rails.logger.info "[IAP] Receipt JSON keys: #{receipt_json.keys.inspect}"
 
       # For Google Play receipts, the token is inside the Payload
-      payload = receipt_json['Payload'].is_a?(String) ? JSON.parse(receipt_json['Payload']) : receipt_json['Payload']
-      purchase_token = payload['purchaseToken']
+      # Payload is a string that contains escaped JSON
+      payload_str = receipt_json['Payload']
+      Rails.logger.info "[IAP] Payload type: #{payload_str.class}, first 100 chars: #{payload_str.to_s[0..100]}"
+
+      # Parse the Payload string first
+      payload_json = JSON.parse(payload_str)
+      Rails.logger.info "[IAP] Parsed Payload keys: #{payload_json.keys.inspect}"
+
+      # The 'json' field contains another escaped JSON string with the actual purchase data
+      json_str = payload_json['json']
+      Rails.logger.info "[IAP] JSON field type: #{json_str.class}, first 100 chars: #{json_str.to_s[0..100]}"
+
+      # Parse the inner json field
+      purchase_data = JSON.parse(json_str)
+      Rails.logger.info "[IAP] Parsed purchase_data keys: #{purchase_data.keys.inspect}"
+
+      # Extract purchaseToken from the parsed purchase data
+      purchase_token = purchase_data['purchaseToken']
 
       Rails.logger.info "[IAP] Extracted purchase_token: #{purchase_token.present? ? "#{purchase_token[0..20]}..." : "MISSING"}"
 
