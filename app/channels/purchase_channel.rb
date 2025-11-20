@@ -5,7 +5,15 @@ class PurchaseChannel < ApplicationCable::Channel
     "purchase_channel_#{params[:user_id]}"
   end
 
+  def dispatch_action(action, data)
+    # Store the full message data so action methods can access unencrypted fields
+    Rails.logger.info "[IAP] dispatch_action called - action: #{action}, data keys: #{data.keys.inspect}"
+    @message_data = data
+    super(action, data)
+  end
+
   def payment(json)
+    Rails.logger.info "[IAP] PAYMENT METHOD ENTRY - json parameter class: #{json.class}"
     _json = JSON.parse(json['json'])
     begin
       Rails.logger.info "[IAP] Payment action called for player #{params[:user_id]}, product: #{_json['product_id']}"
@@ -19,12 +27,20 @@ class PurchaseChannel < ApplicationCable::Channel
   end
 
   def callback(json)
+    Rails.logger.info "[IAP] CALLBACK METHOD ENTRY - json parameter class: #{json.class}"
     _json = JSON.parse(json['json'])
 
-    # Merge unencrypted fields (receipt_data, money, currency) into the decrypted json
-    _json['receipt_data'] = json['receipt_data'] if json['receipt_data'].present?
-    _json['money'] = json['money'] if json['money'].present?
-    _json['currency'] = json['currency'] if json['currency'].present?
+    # Debug: Log what we're receiving
+    Rails.logger.info "[IAP] Callback received - json keys: #{json.keys.inspect}, message_data keys: #{@message_data&.keys&.inspect}"
+    Rails.logger.info "[IAP] Parsed JSON content: #{_json.inspect}"
+    Rails.logger.info "[IAP] platform_order_id from encrypted json: #{_json['platform_order_id'].inspect}"
+
+    # Merge unencrypted fields from the raw message data (stored by dispatch_action)
+    if @message_data.present?
+      _json['receipt_data'] = @message_data['receipt_data'] if @message_data['receipt_data'].present?
+      _json['money'] = @message_data['money'] if @message_data['money'].present?
+      _json['currency'] = @message_data['currency'] if @message_data['currency'].present?
+    end
 
     begin
       Rails.logger.info "[IAP] Callback action called for player #{params[:user_id]}, order_id: #{_json['order_id']}"

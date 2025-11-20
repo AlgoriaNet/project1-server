@@ -12,13 +12,13 @@ class ResourceService
   def add_resource!
     validate_add!
     @player.diamond ||= 0
-    @player.diamond += diamond
+    @player.diamond += @resource.diamond
     @player.gold_coin ||= 0
-    @player.gold_coin += gold_coin
+    @player.gold_coin += @resource.gold_coin
     @player.stamina ||= 0
-    @player.stamina += stamina
+    @player.stamina += @resource.stamina
     @player.exp ||= 0
-    @player.exp += exp
+    @player.exp += @resource.exp
     @resource.items.each do |item_id, count|
       @player.add_item(item_id, count)
     end

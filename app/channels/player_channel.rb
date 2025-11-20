@@ -10,7 +10,6 @@ class PlayerChannel < ApplicationCable::Channel
     player_profile = PlayerProfile.new(params[:user_id])
     render_response "profile", json, player_profile.as_ws_json
     Rails.logger.info "[Perf] PlayerChannel#profile END at #{Time.now.to_f}"
-    PeriodicReward.receive_reward(params[:user_id])
   end
 
   def update_name(json)
