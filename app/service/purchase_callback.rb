@@ -19,10 +19,25 @@ class PurchaseCallback
     when 'apple'
       Payment::AppleValidator.new(@params[:receipt_data], sandbox: order.is_sandbox).verify!
     when 'google', 'android'
+      # Extract purchase token from receipt_data JSON
+      Rails.logger.info "[IAP] Parsing receipt_data for Google Play validation"
+      receipt_json = JSON.parse(@params[:receipt_data])
+      Rails.logger.info "[IAP] Receipt JSON keys: #{receipt_json.keys.inspect}"
+
+      # For Google Play receipts, the token is inside the Payload
+      payload = receipt_json['Payload'].is_a?(String) ? JSON.parse(receipt_json['Payload']) : receipt_json['Payload']
+      purchase_token = payload['purchaseToken']
+
+      Rails.logger.info "[IAP] Extracted purchase_token: #{purchase_token.present? ? "#{purchase_token[0..20]}..." : "MISSING"}"
+
+      unless purchase_token.present?
+        raise ArgumentError, "Invalid receipt format: purchaseToken not found in receipt_data"
+      end
+
       Payment::GoogleValidator.new(
         'com.algoria.hero',
         order.product_id,
-        @params[:platform_order_id]
+        purchase_token
       ).verify!
     when 'unity'
       nil # Unity 平台不需要额外验证
