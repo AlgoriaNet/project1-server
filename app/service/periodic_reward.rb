@@ -13,6 +13,7 @@ class PeriodicReward
         "items" => { "rareKey" => 1, "epicKey" => 1 }
       }
       ResourceService.new(player.id, rewards).add_resource!
+      player.reload
       player.weekly_periodic_rewards_received_date = today
       player.save!
       ActionCable.server.broadcast("player_channel_#{player.id}", { action: "send_periodic_rewards",
@@ -31,6 +32,7 @@ class PeriodicReward
         "gold_coin" => 200,
       }
       ResourceService.new(player.id, rewards).add_resource!
+      player.reload
       player.monthly_periodic_rewards_received_date = today
       player.save!
       ActionCable.server.broadcast("player_channel_#{player.id}", { action: "send_periodic_rewards",
