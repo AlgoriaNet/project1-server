@@ -26,6 +26,9 @@ module ApplicationCable
       @player = Player.find(params[:user_id])
       @player_id = @player.id
       stream_from stream_name
+
+      # Deliver periodic rewards on login (once per calendar day)
+      PeriodicReward.receive_reward(@player.id)
     end
 
     def render_response(action, json, data)
