@@ -97,4 +97,75 @@ class PurchaseChannel < ApplicationCable::Channel
       render_error "ad_draw_coin", json, e.message, 500
     end
   end
+
+  # Developer-only purchase action for testing IAP flow in development environment
+  # SAFETY: Only works in development mode with specific developer device ID
+  DEVELOPER_DEVICE_ID = "7C52EB7B-B58D-51CF-B567-7B6CD124188D".freeze
+
+  def dev_purchase(json)
+    _json = JSON.parse(json['json'])
+
+    # SAFETY CHECK 1: Only allow in development environment
+    unless Rails.env.development?
+      Rails.logger.error "[DEV_PURCHASE] BLOCKED: Attempted dev_purchase in #{Rails.env} environment"
+      return render_error "dev_purchase", json, "Dev purchase only allowed in development environment", 403
+    end
+
+    # SAFETY CHECK 2: Verify developer device ID
+    device_id = _json['device_id']
+    unless device_id == DEVELOPER_DEVICE_ID
+      Rails.logger.error "[DEV_PURCHASE] BLOCKED: Invalid device ID: #{device_id}"
+      return render_error "dev_purchase", json, "Invalid device ID for dev purchase", 403
+    end
+
+    product_id = _json['product_id']
+    is_editor_test = _json['is_editor_test'] || false
+
+    # Log prominently for visibility
+    Rails.logger.warn "=" * 60
+    Rails.logger.warn "[DEV_PURCHASE] DEVELOPER PURCHASE INITIATED"
+    Rails.logger.warn "[DEV_PURCHASE] Player ID: #{params[:user_id]}"
+    Rails.logger.warn "[DEV_PURCHASE] Product ID: #{product_id}"
+    Rails.logger.warn "[DEV_PURCHASE] Device ID: #{device_id}"
+    Rails.logger.warn "[DEV_PURCHASE] Editor Test: #{is_editor_test}"
+    Rails.logger.warn "[DEV_PURCHASE] Timestamp: #{Time.current}"
+    Rails.logger.warn "=" * 60
+
+    begin
+      # Step 1: Create order using existing Purchase.process
+      # Build params in the same format as real payment action
+      purchase_params = {
+        "product_id" => product_id,
+        "platform" => "unity",  # Use unity platform to skip validation in callback
+        "is_sandbox" => true
+      }
+
+      order = Purchase.new(params[:user_id], purchase_params).process
+      Rails.logger.warn "[DEV_PURCHASE] Order created: #{order.order_id}"
+
+      # Step 2: Immediately process callback using existing PurchaseCallback
+      # Build callback params in the same format as real callback action
+      callback_params = {
+        "order_id" => order.order_id,
+        "platform_order_id" => "dev_purchase_#{SecureRandom.hex(8)}",
+        "receipt_data" => nil  # Not needed for unity platform
+      }
+
+      reward_items = PurchaseCallback.new(params[:user_id], callback_params).callback
+      Rails.logger.warn "[DEV_PURCHASE] Purchase completed successfully"
+      Rails.logger.warn "[DEV_PURCHASE] Rewards: #{reward_items.inspect}"
+
+      # Return response in same format as real callback
+      render_response "dev_purchase", json, {
+        order_id: order.order_id,
+        rewards: reward_items,
+        Player: Player.find(params[:user_id]).as_ws_json
+      }
+
+    rescue StandardError => e
+      Rails.logger.error "[DEV_PURCHASE] ERROR: #{e.message}"
+      Rails.logger.error "[DEV_PURCHASE] Backtrace: #{e.backtrace.first(5).join("\n")}"
+      render_error "dev_purchase", json, e.message, 500
+    end
+  end
 end
