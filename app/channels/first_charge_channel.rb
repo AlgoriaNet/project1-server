@@ -34,217 +34,105 @@ class FirstChargeChannel < ApplicationCable::Channel
     end
   end
 
+  # Get purchase status for all tiers for the current player
+  # Checks Order table for hero_99, hero_499, hero_1499 with status "paid"
+  # Returns: { tier1_purchased: true/false, tier2_purchased: true/false, tier3_purchased: true/false }
+  def get_purchase_status(json)
+    _json = JSON.parse(json['json'])
+
+    begin
+      tier1_purchased = Order.exists?(player_id: player.id, product_id: "hero_1499", status: "paid")
+      tier2_purchased = Order.exists?(player_id: player.id, product_id: "hero_499", status: "paid")
+      tier3_purchased = Order.exists?(player_id: player.id, product_id: "hero_99", status: "paid")
+
+      render_response "get_purchase_status", json, {
+        success: true,
+        tier1_purchased: tier1_purchased,
+        tier2_purchased: tier2_purchased,
+        tier3_purchased: tier3_purchased
+      }
+    rescue StandardError => e
+      Rails.logger.error "[FirstCharge] Error fetching purchase status: #{e.message}\n#{e.backtrace.join("\n")}"
+      render_error "get_purchase_status", json, "Failed to fetch purchase status", 500
+    end
+  end
+
+  # Get all claims for the current player
+  # Returns array of claimed tier/day combinations
+  def get_claim_status(json)
+    _json = JSON.parse(json['json'])
+
+    begin
+      # Fetch all FirstChargeClaim records for this player
+      claims = FirstChargeClaim.where(player_id: player.id).map do |claim|
+        {
+          tier: claim.tier,
+          day: claim.day,
+          claimed_at: claim.claimed_at
+        }
+      end
+
+      render_response "get_claim_status", json, {
+        success: true,
+        claims: claims
+      }
+    rescue StandardError => e
+      Rails.logger.error "[FirstCharge] Error fetching claim status: #{e.message}\n#{e.backtrace.join("\n")}"
+      render_error "get_claim_status", json, "Failed to fetch claim status", 500
+    end
+  end
+
   # Claim first charge reward for a specific tier and day
-  # Expected params: { tier: 1-3, day: 1-3 }
+  # Simple: just give the rewards. Frontend controls visibility.
   def claim_reward(json)
     _json = JSON.parse(json['json'])
     tier = _json['tier']
     day = _json['day']
 
     begin
-      # ========== Step 1: Validate Request Parameters ==========
-
-      # Validate tier (1-3)
-      unless tier.present? && [1, 2, 3].include?(tier)
-        render_error "claim_reward", json, "Invalid tier. Must be 1, 2, or 3", 400
-        return
-      end
-
-      # Validate day (1-3)
-      unless day.present? && [1, 2, 3].include?(day)
-        render_error "claim_reward", json, "Invalid day. Must be 1, 2, or 3", 400
-        return
-      end
-
-      # Validate player exists
-      unless player.present?
-        render_error "claim_reward", json, "Player not found", 401
-        return
-      end
-
-      # ========== Step 2: Check Purchase History ==========
-
-      # Define first charge product IDs for each tier
-      first_charge_products = {
-        1 => "first_charge_tier1",
-        2 => "first_charge_tier2",
-        3 => "first_charge_tier3"
+      # Simple hardcoded rewards for each tier/day combo
+      rewards_map = {
+        [1, 1] => { diamond: 750, rare_keys: 30 },
+        [1, 2] => { diamond: 750, epic_keys: 100 },
+        [1, 3] => { diamond: 750, skillbooks: 100 },
+        [2, 1] => { diamond: 330, rare_keys: 20 },
+        [2, 2] => { diamond: 330, epic_keys: 30 },
+        [2, 3] => { diamond: 330, skillbooks: 30 },
+        [3, 1] => { diamond: 60, rare_keys: 10 },
+        [3, 2] => { diamond: 60, epic_keys: 10 },
+        [3, 3] => { diamond: 60, skillbooks: 10 }
       }
 
-      product_id = first_charge_products[tier]
+      reward = rewards_map[[tier, day]]
+      return render_error "claim_reward", json, "Invalid tier/day", 400 unless reward
 
-      # Check if player has made a purchase for this tier (order status = 'paid' or 'delivered')
-      purchase = Order.where(
-        player_id: player.id,
-        product_id: product_id,
-        status: ['paid', 'delivered']
-      ).first
-
-      unless purchase.present?
-        render_error "claim_reward", json, "Player has not purchased tier #{tier} first charge pack", 403
-        return
-      end
-
-      # ========== Step 3: Validate Day Claimability ==========
-
-      # Calculate when each day becomes claimable
-      purchase_date = purchase.pay_time || purchase.created_at
-
-      claimable_date = case day
-      when 1
-        purchase_date # Immediate
-      when 2
-        purchase_date.beginning_of_day + 1.day # Next calendar day
-      when 3
-        purchase_date.beginning_of_day + 2.days # 2 days later
-      end
-
-      current_time = Time.current
-
-      if current_time < claimable_date
-        time_until_claimable = ((claimable_date - current_time) / 3600.0).ceil # Hours until claimable
-        render_error "claim_reward", json, "Day #{day} reward not yet claimable. Available in #{time_until_claimable} hours", 403
-        return
-      end
-
-      # ========== Step 4: Check if Already Claimed ==========
-
-      if FirstChargeClaim.claimed?(player.id, tier, day)
-        render_error "claim_reward", json, "Tier #{tier} Day #{day} reward already claimed", 403
-        return
-      end
-
-      # ========== Step 5: Get Reward Configuration ==========
-
-      reward_config = FirstChargeTierReward.for_tier_and_day(tier, day).first
-
-      unless reward_config.present?
-        render_error "claim_reward", json, "Reward configuration not found for tier #{tier}, day #{day}", 500
-        return
-      end
-
-      # Extract reward amounts
-      diamond_amount = reward_config.diamond || 0
-      rarekey_amount = reward_config.rarekey_count || 0
-      epickey_amount = reward_config.epickey_count || 0
-      skillbook_amount = reward_config.skillbook_count || 0
-      shard_count = reward_config.shard_count || 10
-
-      # ========== Step 6: Check Eleanor Sidekick Ownership (Day 1 only) ==========
-
-      # Eleanor has base_id = 19 (per migration comment)
-      eleanor_base_id = 19
-      sidekick_reward = nil
-      shard_reward = nil
-
-      if day == 1
-        # Check if player already owns Eleanor
-        existing_sidekick = player.sidekicks.find_by(base_id: eleanor_base_id)
-
-        if existing_sidekick.present?
-          # Player owns Eleanor → give shards instead
-          shard_reward = {
-            item_name: "19_Eleanor",
-            count: shard_count
-          }
-          Rails.logger.info "[FirstCharge] Player #{player.id} already owns Eleanor, granting #{shard_count} shards"
-        else
-          # Player doesn't own Eleanor → grant the sidekick
-          sidekick_reward = {
-            base_id: eleanor_base_id,
-            skill_level: 1,
-            star: 0
-          }
-          Rails.logger.info "[FirstCharge] Player #{player.id} does not own Eleanor, granting sidekick"
-        end
-      end
-
-      # ========== Step 7: Deliver Rewards (Transaction) ==========
-
-      delivered_items = {}
-
+      # Just give the rewards
       ApplicationRecord.transaction do
-        # Add diamonds
-        if diamond_amount > 0
-          player.diamond ||= 0
-          player.diamond += diamond_amount
-          delivered_items[:diamond] = diamond_amount
+        # Check if already claimed (INSIDE transaction to prevent race condition)
+        if FirstChargeClaim.exists?(player_id: player.id, tier: tier, day: day)
+          raise ArgumentError, "Reward already claimed for this tier and day"
         end
 
-        # Add rare keys (Day 1)
-        if rarekey_amount > 0
-          player.add_item("RareKey", rarekey_amount)
-          delivered_items[:rare_keys] = rarekey_amount
-        end
+        player.diamond += reward[:diamond] if reward[:diamond]
+        player.add_item("RareKey", reward[:rare_keys]) if reward[:rare_keys]
+        player.add_item("EpicKey", reward[:epic_keys]) if reward[:epic_keys]
+        player.add_item("SKb_19_Eleanor", reward[:skillbooks]) if reward[:skillbooks]
 
-        # Add epic keys (Day 2)
-        if epickey_amount > 0
-          player.add_item("EpicKey", epickey_amount)
-          delivered_items[:epic_keys] = epickey_amount
-        end
+        # Record the claim
+        FirstChargeClaim.create!(player_id: player.id, tier: tier, day: day)
 
-        # Add skillbooks (Day 3 - Eleanor skillbook: SKb_19_Eleanor)
-        if skillbook_amount > 0
-          player.add_item("SKb_19_Eleanor", skillbook_amount)
-          delivered_items[:skillbooks] = skillbook_amount
-        end
-
-        # Grant Eleanor sidekick OR shards (Day 1 only)
-        if sidekick_reward.present?
-          new_sidekick = Sidekick.create!(
-            base_id: sidekick_reward[:base_id],
-            player_id: player.id,
-            skill_level: sidekick_reward[:skill_level],
-            star: sidekick_reward[:star],
-            is_deployed: false
-          )
-          delivered_items[:sidekick] = {
-            id: new_sidekick.id,
-            base_id: new_sidekick.base_id,
-            name: "Eleanor"
-          }
-        elsif shard_reward.present?
-          player.add_item(shard_reward[:item_name], shard_reward[:count])
-          delivered_items[:shards] = {
-            item_name: shard_reward[:item_name],
-            count: shard_reward[:count]
-          }
-        end
-
-        # Save player changes
         player.save!
-
-        # ========== Step 8: Record the Claim ==========
-
-        FirstChargeClaim.create!(
-          player_id: player.id,
-          tier: tier,
-          day: day
-          # claimed_at will be auto-set by model callback
-        )
-
-        Rails.logger.info "[FirstCharge] Successfully claimed tier #{tier} day #{day} for player #{player.id}"
       end
-
-      # ========== Step 9: Return Success Response ==========
-
-      # Reload player to get fresh data
-      player.reload
 
       render_response "claim_reward", json, {
         success: true,
-        tier: tier,
-        day: day,
-        rewards: delivered_items,
+        rewards: reward,
         player: player.as_ws_json
       }
 
-    rescue ActiveRecord::RecordInvalid => e
-      Rails.logger.error "[FirstCharge] Claim validation error: #{e.message}\n#{e.backtrace.join("\n")}"
-      render_error "claim_reward", json, "Failed to claim reward: #{e.message}", 400
-    rescue StandardError => e
-      Rails.logger.error "[FirstCharge] Claim error: #{e.message}\n#{e.backtrace.join("\n")}"
-      render_error "claim_reward", json, "Internal server error", 500
+    rescue => e
+      Rails.logger.error "[FirstCharge] Claim error: #{e.message}"
+      render_error "claim_reward", json, "Failed to claim reward", 500
     end
   end
 end
