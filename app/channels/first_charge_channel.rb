@@ -35,15 +35,17 @@ class FirstChargeChannel < ApplicationCable::Channel
   end
 
   # Get purchase status for all tiers for the current player
-  # Checks Order table for hero_99, hero_499, hero_1499 with status "paid"
+  # Checks FirstChargeClaim table - if a tier has any claim, it means it was purchased
   # Returns: { tier1_purchased: true/false, tier2_purchased: true/false, tier3_purchased: true/false }
   def get_purchase_status(json)
     _json = JSON.parse(json['json'])
 
     begin
-      tier1_purchased = Order.exists?(player_id: player.id, product_id: "hero_1499", status: "paid")
-      tier2_purchased = Order.exists?(player_id: player.id, product_id: "hero_499", status: "paid")
-      tier3_purchased = Order.exists?(player_id: player.id, product_id: "hero_99", status: "paid")
+      # Check if player has any FirstChargeClaim for each tier
+      # This distinguishes FirstCharge purchases from regular diamond purchases
+      tier1_purchased = FirstChargeClaim.exists?(player_id: player.id, tier: 1)
+      tier2_purchased = FirstChargeClaim.exists?(player_id: player.id, tier: 2)
+      tier3_purchased = FirstChargeClaim.exists?(player_id: player.id, tier: 3)
 
       render_response "get_purchase_status", json, {
         success: true,
