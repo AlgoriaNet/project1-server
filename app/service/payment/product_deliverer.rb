@@ -26,9 +26,34 @@ module Payment
         else
           reward_result = @product.reward_items
         end
+
+        # Handle FirstCharge products - create FirstChargeClaim for Day 1
+        if first_charge_tier = get_first_charge_tier(@product.product_id)
+          FirstChargeClaim.find_or_create_by(
+            player_id: @player_id,
+            tier: first_charge_tier,
+            day: 1
+          )
+        end
+
         @player.save!
       end
       reward_result
+    end
+
+    private
+
+    def get_first_charge_tier(product_id)
+      case product_id
+      when "hero_1499"
+        1
+      when "hero_499"
+        2
+      when "hero_99"
+        3
+      else
+        nil
+      end
     end
 
     def card_purchased
