@@ -27,7 +27,7 @@ module Payment
           reward_result = @product.reward_items
         end
 
-        # Handle FirstCharge products - create FirstChargeClaim for Day 1
+        # Handle FirstCharge products - create FirstChargeClaim for first_* product IDs only
         if first_charge_tier = get_first_charge_tier(@product.product_id)
           FirstChargeClaim.find_or_create_by(
             player_id: @player_id,
@@ -45,11 +45,11 @@ module Payment
 
     def get_first_charge_tier(product_id)
       case product_id
-      when "hero_1499"
+      when "first_1499"
         1
-      when "hero_499"
+      when "first_499"
         2
-      when "hero_99"
+      when "first_99"
         3
       else
         nil
