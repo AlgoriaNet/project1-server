@@ -85,28 +85,16 @@ class FirstChargeChannel < ApplicationCable::Channel
   end
 
   # Claim first charge reward for a specific tier and day
-  # Simple: just give the rewards. Frontend controls visibility.
+  # Fetches reward config from database and gives rewards
   def claim_reward(json)
     _json = JSON.parse(json['json'])
     tier = _json['tier']
     day = _json['day']
 
     begin
-      # Simple hardcoded rewards for each tier/day combo
-      rewards_map = {
-        [1, 1] => { diamond: 750, rare_keys: 30 },
-        [1, 2] => { diamond: 750, epic_keys: 100 },
-        [1, 3] => { diamond: 750, skillbooks: 100 },
-        [2, 1] => { diamond: 330, rare_keys: 20 },
-        [2, 2] => { diamond: 330, epic_keys: 30 },
-        [2, 3] => { diamond: 330, skillbooks: 30 },
-        [3, 1] => { diamond: 60, rare_keys: 10 },
-        [3, 2] => { diamond: 60, epic_keys: 10 },
-        [3, 3] => { diamond: 60, skillbooks: 10 }
-      }
-
-      reward = rewards_map[[tier, day]]
-      return render_error "claim_reward", json, "Invalid tier/day", 400 unless reward
+      # Fetch reward config from database
+      reward_config = FirstChargeTierReward.find_by(tier: tier, day: day)
+      return render_error "claim_reward", json, "Invalid tier/day configuration", 400 unless reward_config
 
       # Just give the rewards
       ApplicationRecord.transaction do
@@ -115,10 +103,20 @@ class FirstChargeChannel < ApplicationCable::Channel
           raise ArgumentError, "Reward already claimed for this tier and day"
         end
 
-        player.diamond += reward[:diamond] if reward[:diamond]
-        player.add_item("RareKey", reward[:rare_keys]) if reward[:rare_keys]
-        player.add_item("EpicKey", reward[:epic_keys]) if reward[:epic_keys]
-        player.add_item("SKb_19_Eleanor", reward[:skillbooks]) if reward[:skillbooks]
+        # Add diamond
+        player.diamond += reward_config.diamond if reward_config.diamond > 0
+
+        # Add rarekey
+        player.add_item("RareKey", reward_config.rarekey_count) if reward_config.rarekey_count > 0
+
+        # Add epickey
+        player.add_item("EpicKey", reward_config.epickey_count) if reward_config.epickey_count > 0
+
+        # Add skillbook (Eleanor)
+        player.add_item("SKb_19_Eleanor", reward_config.skillbook_count) if reward_config.skillbook_count > 0
+
+        # Add shard (Eleanor)
+        player.add_item("Shard_19_Eleanor", reward_config.shard_count) if reward_config.shard_count > 0
 
         # Record the claim
         FirstChargeClaim.create!(player_id: player.id, tier: tier, day: day)
@@ -128,7 +126,13 @@ class FirstChargeChannel < ApplicationCable::Channel
 
       render_response "claim_reward", json, {
         success: true,
-        rewards: reward,
+        rewards: {
+          diamond: reward_config.diamond,
+          rare_keys: reward_config.rarekey_count,
+          epic_keys: reward_config.epickey_count,
+          skillbooks: reward_config.skillbook_count,
+          shards: reward_config.shard_count
+        },
         player: player.as_ws_json
       }
 
