@@ -13,9 +13,12 @@ class PurchaseCallback
     # SignatureValidator.new(@params).validate!
     # 基础参数验证
     Rails.logger.info "[IAP] PurchaseCallback.callback - @params keys: #{@params.keys.inspect}"
-    Rails.logger.info "[IAP] receipt_data value: #{@params['receipt_data'].inspect[0..100]}"
+    Rails.logger.info "[IAP] receipt_data present? #{@params['receipt_data'].present?}"
+    Rails.logger.info "[IAP] receipt_data value: #{@params['receipt_data'].inspect[0..200] rescue 'ERROR PRINTING'}"
 
     order = BaseValidator.new(@params).validate_callback!
+    Rails.logger.info "[IAP] validate_callback! returned order: #{order&.order_id}, platform: #{order&.platform}"
+    raise "Order is nil after validation!" unless order.present?
 
     # 平台特定验证, Unity 不需要验证
     case order.platform.downcase
