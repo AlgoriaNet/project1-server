@@ -81,24 +81,6 @@ class PurchaseCallback
       PeriodicReward.receive_reward(@player_id)
     end
 
-    # Handle FirstCharge purchase - create claim record to mark this tier as purchased
-    if order.product_id.start_with?("first_")
-      tier = case order.product_id
-             when "first_1499" then 1
-             when "first_499" then 2
-             when "first_99" then 3
-             else nil
-             end
-
-      if tier.present?
-        # Create a FirstChargeClaim record for this tier to mark it as purchased
-        FirstChargeClaim.find_or_create_by(player_id: @player_id, tier: tier, day: 0) do |claim|
-          claim.claimed_at = Time.current
-        end
-        Rails.logger.info "[FirstCharge] Created purchase marker claim for player #{@player_id}, tier #{tier}"
-      end
-    end
-
     reward_items
   end
 end

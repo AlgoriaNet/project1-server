@@ -12,28 +12,37 @@ module Payment
     def deliver
       reward_result = nil
       ActiveRecord::Base.transaction do
-        reward = @product.reward_items
-        # 发放货币
-        @player.diamond += reward["diamond"] if reward["diamond"].present?
-        # 发放物品
-        items = reward["items"] || {}
-        items.each do |item_id, count|
-          @player.add_item!(item_id, count)
-        end
-        # Handle subscription card logic
-        if @product.product_id.start_with?("card_")
-          reward_result = card_purchased
-        else
-          reward_result = @product.reward_items
-        end
-
-        # Handle FirstCharge products - create FirstChargeClaim for first_* product IDs only
+        # Handle FirstCharge products separately - rewards are delivered via claim_reward endpoint
         if first_charge_tier = get_first_charge_tier(@product.product_id)
+          # For FirstCharge, just create the purchase marker (day 0 claim)
+          # Actual rewards are claimed individually via claim_reward endpoint
           FirstChargeClaim.find_or_create_by(
             player_id: @player_id,
             tier: first_charge_tier,
-            day: 1
-          )
+            day: 0
+          ) do |claim|
+            claim.claimed_at = Time.current
+          end
+          reward_result = { message: "FirstCharge purchase registered" }
+        else
+          # Handle regular purchases (diamonds, cards, etc.)
+          reward = @product.reward_items
+          if reward.present?
+            # 发放货币
+            @player.diamond += reward["diamond"] if reward["diamond"].present?
+            # 发放物品
+            items = reward["items"] || {}
+            items.each do |item_id, count|
+              @player.add_item!(item_id, count)
+            end
+          end
+
+          # Handle subscription card logic
+          if @product.product_id.start_with?("card_")
+            reward_result = card_purchased
+          else
+            reward_result = @product.reward_items
+          end
         end
 
         @player.save!
