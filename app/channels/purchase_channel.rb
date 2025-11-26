@@ -36,19 +36,14 @@ class PurchaseChannel < ApplicationCable::Channel
     Rails.logger.info "[IAP] platform_order_id from encrypted json: #{_json['platform_order_id'].inspect}"
 
     # Merge unencrypted fields from the raw message data (stored by dispatch_action)
-    # Also accept these fields from the encrypted json if not in message_data
     if @message_data.present?
       _json['receipt_data'] = @message_data['receipt_data'] if @message_data['receipt_data'].present?
       _json['money'] = @message_data['money'] if @message_data['money'].present?
       _json['currency'] = @message_data['currency'] if @message_data['currency'].present?
     end
 
-    # If receipt_data is still missing, try to get it from the json array fields (frontend compatibility)
-    unless _json['receipt_data'].present?
-      # Check if receipt_data was sent in the json array
-      _json['receipt_data'] = @message_data['receipt_data'] if @message_data && @message_data['receipt_data']
-      Rails.logger.warn "[IAP] receipt_data not found in message or json, will fail validation"
-    end
+    # Note: receipt_data should be in the encrypted _json from the frontend
+    # The frontend's IAPManager.ProcessPurchase sends it as part of the encrypted payload
 
     begin
       Rails.logger.info "[IAP] Callback action called for player #{params[:user_id]}, order_id: #{_json['order_id']}"
