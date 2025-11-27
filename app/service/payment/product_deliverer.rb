@@ -14,6 +14,7 @@ module Payment
       ActiveRecord::Base.transaction do
         # Handle FirstCharge products separately - rewards are delivered via claim_reward endpoint
         if first_charge_tier = get_first_charge_tier(@product.product_id)
+          Rails.logger.info "[ProductDeliverer] Creating FirstCharge purchase marker for player #{@player_id}, tier #{first_charge_tier}, product #{@product.product_id}"
           # For FirstCharge, just create the purchase marker (day 0 claim)
           # Actual rewards are claimed individually via claim_reward endpoint
           FirstChargeClaim.find_or_create_by(
@@ -23,6 +24,7 @@ module Payment
           ) do |claim|
             claim.claimed_at = Time.current
           end
+          Rails.logger.info "[ProductDeliverer] FirstCharge purchase marker created successfully for tier #{first_charge_tier}"
           reward_result = { message: "FirstCharge purchase registered" }
         else
           # Handle regular purchases (diamonds, cards, etc.)
