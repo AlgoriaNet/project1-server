@@ -121,6 +121,13 @@ class FirstChargeChannel < ApplicationCable::Channel
         # Record the claim
         FirstChargeClaim.create!(player_id: player.id, tier: tier, day: day)
 
+        # Check if all 9 claims (3 tiers × 3 days) are now complete
+        total_claims = FirstChargeClaim.where(player_id: player.id).count
+        if total_claims == 9
+          player.first_charge_completed = true
+          Rails.logger.info "[FirstCharge] All 9 claims completed for player #{player.id}, setting first_charge_completed = true"
+        end
+
         player.save!
       end
 
