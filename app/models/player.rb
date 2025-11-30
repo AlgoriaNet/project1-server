@@ -7,6 +7,7 @@ class Player < ApplicationRecord
   has_many :gemstones
   has_many :battle_formations
   has_many :first_charge_claims
+  has_many :daily_offer_claims
 
 
   before_create :init_by_before_create

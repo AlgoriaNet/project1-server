@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_19_000000) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_28_233337) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -111,6 +111,17 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_19_000000) do
     t.index ["sidekick2_id"], name: "battle_formation_sidekicks2_id_fk"
     t.index ["sidekick3_id"], name: "battle_formation_sidekicks3_id_fk"
     t.index ["sidekick4_id"], name: "battle_formation_sidekicks4_id_fk"
+  end
+
+  create_table "daily_offer_claims", charset: "utf8mb3", force: :cascade do |t|
+    t.bigint "player_id", null: false, comment: "Player who claimed the reward"
+    t.string "product_id", null: false, comment: "Daily offer product ID (daily_99, daily_199, daily_499)"
+    t.date "claimed_date", null: false, comment: "Date when the reward was claimed (for daily reset)"
+    t.datetime "claimed_at", null: false, comment: "When the reward was claimed"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id", "product_id", "claimed_date"], name: "index_daily_offer_claims_unique", unique: true
+    t.index ["player_id"], name: "index_daily_offer_claims_on_player_id"
   end
 
   create_table "equipments", charset: "utf8mb3", force: :cascade do |t|
@@ -329,6 +340,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_19_000000) do
   add_foreign_key "battle_formations", "sidekicks", column: "sidekick2_id"
   add_foreign_key "battle_formations", "sidekicks", column: "sidekick3_id"
   add_foreign_key "battle_formations", "sidekicks", column: "sidekick4_id"
+  add_foreign_key "daily_offer_claims", "players"
   add_foreign_key "equipments", "base_equipments", name: "equipments_base_equipments_id_fk"
   add_foreign_key "equipments", "heros", column: "equip_with_hero_id", name: "equipments_heros_id_fk"
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"

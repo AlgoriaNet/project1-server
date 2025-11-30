@@ -26,6 +26,18 @@ module Payment
           end
           Rails.logger.info "[ProductDeliverer] FirstCharge purchase marker created successfully for tier #{first_charge_tier}"
           reward_result = { message: "FirstCharge purchase registered" }
+        elsif is_daily_offer?(@product.product_id)
+          # Handle daily offers - deliver rewards immediately and record the claim
+          Rails.logger.info "[ProductDeliverer] Processing daily offer for player #{@player_id}, product #{@product.product_id}"
+          handler = DailyOfferHandler.new(@player_id, @product.product_id)
+
+          # Check if already claimed today
+          if handler.already_claimed_today?
+            Rails.logger.warn "[ProductDeliverer] Player #{@player_id} already claimed #{@product.product_id} today"
+            reward_result = { message: "Daily offer already claimed today", error: true }
+          else
+            reward_result = handler.deliver_rewards
+          end
         else
           # Handle regular purchases (diamonds, cards, etc.)
           reward = @product.reward_items
@@ -65,6 +77,10 @@ module Payment
       else
         nil
       end
+    end
+
+    def is_daily_offer?(product_id)
+      product_id.start_with?("daily_")
     end
 
     def card_purchased
