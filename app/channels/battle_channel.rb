@@ -97,7 +97,11 @@ class BattleChannel < ApplicationCable::Channel
           new_gemstone_ids: rewards[:gemstones].map(&:id)
         }
       }
-      
+
+      # Check for level up AFTER response is sent (non-blocking)
+      # This avoids delaying the frontend response with level calculation
+      LevelService.get_level_info(player)
+
     rescue StandardError => e
       Rails.logger.error "Battle complete error: #{e.message}\n#{e.backtrace.join("\n")}"
       render_error "battle_complete", json, "Battle completion failed: #{e.message}", 500
@@ -318,35 +322,47 @@ class BattleChannel < ApplicationCable::Channel
 
   def generate_sidekick_skillbooks(count)
     return [] if count == 0
-    
+
     # Get only sidekick skillbooks (exclude equipScroll)
     sidekick_skillbooks = BaseItem.where("name LIKE ?", "SKb_%")
                                  .where.not(name: "equipScroll")
                                  .pluck(:name)
-    
+
     skillbooks = []
     count.times do
       skillbooks << sidekick_skillbooks.sample
     end
-    
+
     # Group duplicates: [A, A, B] → [{name: A, quantity: 2}, {name: B, quantity: 1}]
     skillbooks.tally.map { |name, qty| { name: name, quantity: qty } }
   end
 
+  # Cache BaseEquipment to avoid 300ms database query on every battle
+  # Rails pattern: @instance_variable ||= value caches in the class for duration of server uptime
+  def self.cached_base_equipment
+    @cached_base_equipment ||= BaseEquipment.all
+  end
+
+  # Call this method if base equipment is added/modified to clear cache
+  def self.clear_equipment_cache
+    @cached_base_equipment = nil
+  end
+
   def generate_equipment_rewards(count)
     return [] if count == 0
-    
+
     equipment_list = []
-    available_equipment = BaseEquipment.all
-    
+    # Use cached BaseEquipment to avoid 300ms database query on every battle
+    available_equipment = self.class.cached_base_equipment
+
     count.times do
       # Select equipment quality based on rarity rates
       quality = select_by_rarity(EQUIPMENT_DROP_RATES)
-      
+
       # Get equipment of selected quality
       base_equipment = available_equipment.select { |eq| eq.name.match(/#{quality.to_s.rjust(2, '0')}$/) }.sample
       base_equipment ||= available_equipment.sample # Fallback to any equipment
-      
+
       # Create equipment with level 1, rank 1, and random attributes
       equipment = Equipment.create!(
         player: player,
@@ -354,14 +370,14 @@ class BattleChannel < ApplicationCable::Channel
         intensify_level: 1,
         upgrade_rank: 1
       )
-      
+
       # Generate random attributes via washing
       equipment.washing
       equipment.save!
-      
+
       equipment_list << equipment
     end
-    
+
     equipment_list
   end
 
@@ -417,16 +433,18 @@ class BattleChannel < ApplicationCable::Channel
     # Single save for all changes (exp, gold, items)
     player.save!
 
-    # Check for level up after EXP gain
-    LevelService.get_level_info(player)
+    # NOTE: LevelService.get_level_info moved to AFTER response (see battle_complete method)
+    # Avoids blocking response with additional database updates
   end
 
   def format_rewards_for_frontend(rewards)
     {
       fixed: rewards[:fixed],
       skillbooks: rewards[:skillbooks],
-      equipment: rewards[:equipment].map(&:as_ws_json),
-      gemstones: rewards[:gemstones].map(&:as_ws_json)
+      # Only send IDs to frontend, avoid expensive as_ws_json serialization
+      # Frontend can request full data if needed via equipment detail API
+      equipment_ids: rewards[:equipment].map(&:id),
+      gemstone_ids: rewards[:gemstones].map(&:id)
     }
   end
 
