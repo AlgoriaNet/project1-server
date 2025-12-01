@@ -167,7 +167,21 @@ class DrawService
   end
 
   def determine_sidekick
-    BaseSidekick.all.sample
+    # Use cached sidekick data (id, fragment_name, skill_book_icon) instead of loading full records
+    sidekick_data_array = DrawService.cached_basesidekick_data
+    sidekick_data_array.sample
+  end
+
+  # Cache BaseSidekick data (id, fragment_name, skill_book_icon) to avoid repeated database queries
+  # Returns array of hashes with only the fields needed for hero draws
+  def self.cached_basesidekick_data
+    @cached_sidekick_data ||= BaseSidekick.select(:id, :fragment_name, :skill_book_icon)
+                                          .map { |s| { id: s.id, fragment_name: s.fragment_name, skill_book_icon: s.skill_book_icon } }
+  end
+
+  # Clear cache when sidekicks are created/updated (call after seeding or updates)
+  def self.clear_sidekick_cache
+    @cached_sidekick_data = nil
   end
 
   def draw_single_hero
@@ -176,7 +190,7 @@ class DrawService
     probability_table = config[:probability] || CsvConfig.load_probability_hero
     probability_config = calculate_random_probability(probability_table)
     puts "Probability Config: #{probability_config[:type]}"
-    item = probability_config[:type] == 'skb' ? sidekick.skill_book_icon : sidekick.fragment_name
+    item = probability_config[:type] == 'skb' ? sidekick[:skill_book_icon] : sidekick[:fragment_name]
     @player.add_item(item, probability_config[:count])
     { item => probability_config[:count] }
   end
