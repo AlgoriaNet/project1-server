@@ -20,6 +20,13 @@ class DrawService
     }
   }.freeze
 
+  # Free claim limits per card pool type
+  FREE_CLAIM_LIMITS = {
+    'hero' => 1,
+    'rare' => 3,
+    'epic' => 3
+  }.freeze
+
   attr_reader :player, :card_pool_type, :consume_item, :count
 
   ##
@@ -46,6 +53,7 @@ class DrawService
   def draw
     ApplicationRecord.transaction do
       cost_resource!
+      track_free_claim! if @consume_item == 'ad'
       draw_items
     end
   end
@@ -61,6 +69,11 @@ class DrawService
     raise ArgumentError, 'draw card pool type must be "rare gem", "epic gem" or "hero"' unless valid_card_pool_type?
     raise ArgumentError, 'consume item must be "key", "diamond" or "ad"' if %w[key diamond ad].exclude?(@consume_item)
     raise ArgumentError, 'cost config not found' if cost_config.blank?
+
+    # Validate free claims if consuming via ad
+    if @consume_item == 'ad'
+      validate_free_claim!
+    end
 
     # 检查玩家资源是否足够
     unless ResourceService.new(@player.id, cost_resource).validate_cost!
@@ -178,5 +191,68 @@ class DrawService
 
   def draw_hero
     @count.times.map { draw_single_hero }.tap { @player.save! }
+  end
+
+  ##
+  # Validate free claim eligibility for ad-based draws
+  # @raise [ArgumentError] if player has reached daily free claim limit
+  def validate_free_claim!
+    initialize_free_claims_structure!
+
+    # Map card pool type to free claims key
+    pool_key = case @card_pool_type
+               when 'hero' then 'hero'
+               when 'rare gem' then 'rare'
+               when 'epic gem' then 'epic'
+               else raise ArgumentError, "Unknown card pool type: #{@card_pool_type}"
+               end
+
+    claim_data = @player.draw_times['free_claims'][pool_key]
+    today = Date.today.to_s
+
+    # Reset count if new day
+    if claim_data['last_reset_date'] != today
+      claim_data['count'] = 0
+      claim_data['last_reset_date'] = today
+    end
+
+    # Check if limit reached
+    limit = FREE_CLAIM_LIMITS[pool_key]
+    if claim_data['count'] >= limit
+      raise ArgumentError, "free claim limit reached for #{pool_key}"
+    end
+  end
+
+  ##
+  # Track a free claim in the player's draw_times
+  def track_free_claim!
+    initialize_free_claims_structure!
+
+    # Map card pool type to free claims key
+    pool_key = case @card_pool_type
+               when 'hero' then 'hero'
+               when 'rare gem' then 'rare'
+               when 'epic gem' then 'epic'
+               else raise ArgumentError, "Unknown card pool type: #{@card_pool_type}"
+               end
+
+    claim_data = @player.draw_times['free_claims'][pool_key]
+    claim_data['count'] = (claim_data['count'] || 0) + 1
+    @player.save!
+  end
+
+  ##
+  # Ensure free_claims structure exists in draw_times
+  def initialize_free_claims_structure!
+    @player.draw_times ||= {}
+    @player.draw_times['free_claims'] ||= {}
+
+    # Initialize each pool type if not present
+    ['hero', 'rare', 'epic'].each do |pool|
+      @player.draw_times['free_claims'][pool] ||= {
+        'count' => 0,
+        'last_reset_date' => Date.today.to_s
+      }
+    end
   end
 end

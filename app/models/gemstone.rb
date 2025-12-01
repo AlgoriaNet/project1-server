@@ -27,24 +27,38 @@ class Gemstone < ApplicationRecord
   def random_entry
     # New system: Levels 1-4 get basic attributes (1-11), Levels 5-7 get dual attributes (1-22)
     if self.level <= 4
-      # Single attribute from basic attributes (attribute_id 1-11)
-      basic_entries = GemstoneEntry.where(attribute_type: 'basic')
-      self.entry_id = basic_entries.sample.try(:id) if basic_entries.any?
+      # Single attribute from basic attributes - use cached IDs
+      basic_ids = self.class.cached_basic_entry_ids
+      self.entry_id = basic_ids.sample if basic_ids.any?
       self[:secondary_entry_id] = nil # Clear secondary for single attribute gems
     else
-      # Dual attributes from all attributes (1-22) - pick two different ones
-      all_entries = GemstoneEntry.all.to_a
-      if all_entries.size >= 2
-        selected_entries = all_entries.sample(2)
-        self.entry_id = selected_entries[0].id
-        self[:secondary_entry_id] = selected_entries[1].id
-      else
-        # Fallback if not enough entries
-        self.entry_id = all_entries.sample.try(:id) if all_entries.any?
+      # Dual attributes - pick two different entries from cached IDs
+      all_ids = self.class.cached_all_entry_ids
+      if all_ids.size >= 2
+        selected_ids = all_ids.sample(2)
+        self.entry_id = selected_ids[0]
+        self[:secondary_entry_id] = selected_ids[1]
+      elsif all_ids.size == 1
+        self.entry_id = all_ids[0]
         self[:secondary_entry_id] = nil
       end
     end
     self
+  end
+
+  # Cache entry IDs to avoid repeated database queries during draws
+  def self.cached_basic_entry_ids
+    @cached_basic_ids ||= GemstoneEntry.where(attribute_type: 'basic').pluck(:id)
+  end
+
+  def self.cached_all_entry_ids
+    @cached_all_ids ||= GemstoneEntry.pluck(:id)
+  end
+
+  # Clear cache when entries are created/updated (call after seeding or updates)
+  def self.clear_entry_cache
+    @cached_basic_ids = nil
+    @cached_all_ids = nil
   end
 
   def lock
