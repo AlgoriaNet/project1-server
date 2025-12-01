@@ -338,14 +338,16 @@ class BattleChannel < ApplicationCable::Channel
   end
 
   # Cache BaseEquipment to avoid 300ms database query on every battle
-  # Rails pattern: @instance_variable ||= value caches in the class for duration of server uptime
+  # Using Rails.cache instead of instance variables because class reloading in dev mode clears @variables
   def self.cached_base_equipment
-    @cached_base_equipment ||= BaseEquipment.all
+    Rails.cache.fetch('battle_base_equipment', expires_in: 24.hours) do
+      BaseEquipment.all.to_a  # Convert to array to cache the result
+    end
   end
 
   # Call this method if base equipment is added/modified to clear cache
   def self.clear_equipment_cache
-    @cached_base_equipment = nil
+    Rails.cache.delete('battle_base_equipment')
   end
 
   def generate_equipment_rewards(count)
