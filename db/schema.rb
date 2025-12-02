@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_01_171437) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_28_233337) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -122,6 +122,33 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_01_171437) do
     t.datetime "updated_at", null: false
     t.index ["player_id", "product_id", "claimed_date"], name: "index_daily_offer_claims_unique", unique: true
     t.index ["player_id"], name: "index_daily_offer_claims_on_player_id"
+  end
+
+  create_table "daily_signin_claims", charset: "utf8mb3", force: :cascade do |t|
+    t.bigint "player_id", null: false, comment: "Player who claimed"
+    t.integer "cycle_number", null: false, comment: "Cycle number (1, 2, 3...)"
+    t.integer "day_number", null: false, comment: "Day in cycle: 1-30"
+    t.boolean "reclaimed", default: false, null: false, comment: "Was this day reclaimed for 20 diamonds?"
+    t.datetime "claimed_at", null: false, comment: "When the day was claimed"
+    t.text "rewards_json", comment: "JSON of rewards given (for skillbook distribution)"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id", "cycle_number", "day_number"], name: "index_daily_signin_claims_unique", unique: true
+    t.index ["player_id"], name: "index_daily_signin_claims_on_player_id"
+  end
+
+  create_table "daily_signin_rewards", charset: "utf8mb3", force: :cascade do |t|
+    t.integer "day_number", null: false, comment: "Day in cycle: 1-30"
+    t.string "reward_type", null: false, comment: "Type: gold_coin, skillbooks, milestone"
+    t.integer "gold_coin", default: 0, null: false, comment: "Gold coin amount (odd days: 200)"
+    t.integer "skillbook_count", default: 0, null: false, comment: "Total skillbooks (even days: 50)"
+    t.integer "diamond", default: 0, null: false, comment: "Diamond amount (milestones)"
+    t.integer "epic_key", default: 0, null: false, comment: "Epic key count (milestones)"
+    t.integer "hero_key", default: 0, null: false, comment: "Hero key count (day 30)"
+    t.integer "rare_key", default: 0, null: false, comment: "Rare key count (day 30)"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["day_number"], name: "index_daily_signin_rewards_on_day_number", unique: true
   end
 
   create_table "equipments", charset: "utf8mb3", force: :cascade do |t|
@@ -298,7 +325,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_01_171437) do
     t.integer "stage_level", default: 1, null: false, comment: "Top-level stage, e.g., 1..100"
     t.integer "max_unlocked_stage", default: 1, null: false, comment: "Highest unlocked stage (1-100)"
     t.integer "current_stage_id", default: 1, null: false, comment: "Current battle stage (1-100)"
-    t.boolean "first_charge_completed", default: false
     t.index ["current_stage_id"], name: "index_players_on_current_stage_id"
     t.index ["device_id"], name: "index_players_on_device_id", unique: true
     t.index ["id", "device_id"], name: "index_players_on_id_and_device_id"
@@ -342,6 +368,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_01_171437) do
   add_foreign_key "battle_formations", "sidekicks", column: "sidekick3_id"
   add_foreign_key "battle_formations", "sidekicks", column: "sidekick4_id"
   add_foreign_key "daily_offer_claims", "players"
+  add_foreign_key "daily_signin_claims", "players"
   add_foreign_key "equipments", "base_equipments", name: "equipments_base_equipments_id_fk"
   add_foreign_key "equipments", "heros", column: "equip_with_hero_id", name: "equipments_heros_id_fk"
   add_foreign_key "equipments", "players", name: "equipments_players_id_fk"
