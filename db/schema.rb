@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_28_233337) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_02_000002) do
   create_table "base_equipments", charset: "utf8mb3", force: :cascade do |t|
     t.string "description"
     t.string "name", limit: 30, null: false
@@ -325,6 +325,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_28_233337) do
     t.integer "stage_level", default: 1, null: false, comment: "Top-level stage, e.g., 1..100"
     t.integer "max_unlocked_stage", default: 1, null: false, comment: "Highest unlocked stage (1-100)"
     t.integer "current_stage_id", default: 1, null: false, comment: "Current battle stage (1-100)"
+    t.boolean "first_charge_completed", default: false
     t.index ["current_stage_id"], name: "index_players_on_current_stage_id"
     t.index ["device_id"], name: "index_players_on_device_id", unique: true
     t.index ["id", "device_id"], name: "index_players_on_id_and_device_id"
