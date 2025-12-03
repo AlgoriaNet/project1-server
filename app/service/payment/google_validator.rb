@@ -20,14 +20,23 @@ module Payment
         raise ArgumentError, "Google API libraries not available. Please install google-apis-androidpublisher_v3 and googleauth gems."
       end
 
-      # 使用服务账号JSON文件初始化
-      config_file = Rails.root.join('config', 'google-service-account.json')
-      unless File.exist?(config_file)
-        raise ArgumentError, "Google service account config file not found at #{config_file}"
+      # Load credentials from environment variable or local file
+      credentials_json = ENV['GOOGLE_SERVICE_ACCOUNT']
+
+      # Fallback to local file for development (if env var not set)
+      if credentials_json.blank?
+        config_file = Rails.root.join('config', 'google-service-account.json')
+        if File.exist?(config_file)
+          credentials_json = File.read(config_file)
+        else
+          raise ArgumentError, "Google service account credentials not found. Set GOOGLE_SERVICE_ACCOUNT env var or create config/google-service-account.json"
+        end
       end
 
+      # Parse credentials and initialize authorizer
+      require 'stringio'
       authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
-        json_key_io: File.open(config_file),
+        json_key_io: StringIO.new(credentials_json),
         scope: 'https://www.googleapis.com/auth/androidpublisher'
       )
 
